@@ -108,13 +108,19 @@ body {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
+/* Weather card: dark base always present; weather colour bleeds in from bottom-right only */
 .weather-card {
-  background: linear-gradient(135deg, #3e4a60, #01060e);
   border-radius: 12px;
   height: 270px;
   position: relative;
   min-height: 375px;
-  transition: background 1.5s ease;
+  /* Two-layer background:
+     1. Solid dark base covers the whole card (text always readable)
+     2. Weather colour radial gradient fades in from bottom-right corner   */
+  background:
+    radial-gradient(ellipse 85% 75% at 100% 100%, var(--wx-color, transparent) 0%, transparent 70%),
+    #1a2535;
+  transition: --wx-color 1.5s ease;
 }
 
 .link-column {
@@ -768,43 +774,35 @@ async function fetchAndRenderCard(card) {
     el(".weather-temp").textContent = `${data.current.temp_c}°C`;
     el(".weather-condition").textContent = data.current.condition.text;
 
-    // Dynamic card background based on condition code
-    // WeatherAPI condition codes: https://www.weatherapi.com/docs/weather_conditions.json
-    const code = data.current.condition.code;
+    // ── Weather condition → accent colour for the bottom-right corner ──
+    // The card base is always dark (#1a2535); only the corner glows with
+    // the weather colour, so white text stays readable everywhere.
+    const code  = data.current.condition.code;
     const isDay = data.current.is_day;
-    let bg = "linear-gradient(135deg, #3e4a60, #01060e)"; // default dark
+    let wxColor = "rgba(30,58,95,0.6)"; // default: subtle blue glow
 
     if (code === 1000) {
-      // Sunny / Clear
-      bg = isDay
-        ? "linear-gradient(135deg, #f59e0b, #fde68a, #fbbf24)" // sunny yellow
-        : "linear-gradient(135deg, #1e3a5f, #0f172a)";          // clear night
-    } else if ([1003].includes(code)) {
-      // Partly cloudy
-      bg = isDay
-        ? "linear-gradient(135deg, #60a5fa, #93c5fd, #bfdbfe)"
-        : "linear-gradient(135deg, #1e293b, #334155)";
+      wxColor = isDay
+        ? "rgba(251,191,36,0.75)"   // sunny: warm amber glow
+        : "rgba(15,23,42,0.9)";     // clear night: near-black
+    } else if (code === 1003) {
+      wxColor = isDay
+        ? "rgba(96,165,250,0.6)"    // partly cloudy day: soft blue
+        : "rgba(30,41,59,0.8)";     // partly cloudy night
     } else if ([1006, 1009].includes(code)) {
-      // Cloudy / Overcast
-      bg = "linear-gradient(135deg, #6b7280, #374151, #1f2937)";
+      wxColor = "rgba(75,85,99,0.7)";   // cloudy / overcast: grey
     } else if ([1030, 1135, 1147].includes(code)) {
-      // Mist / Fog
-      bg = "linear-gradient(135deg, #9ca3af, #6b7280, #4b5563)";
+      wxColor = "rgba(107,114,128,0.5)"; // mist / fog: muted grey
     } else if ([1063,1072,1150,1153,1168,1171,1180,1183,1186,1189,1192,1195,1198,1201,1240,1243,1246].includes(code)) {
-      // Rain
-      bg = "linear-gradient(135deg, #1d4ed8, #1e40af, #1e3a8a)";
+      wxColor = "rgba(29,78,216,0.7)";  // rain: deep blue
     } else if ([1066,1069,1114,1117,1204,1207,1210,1213,1216,1219,1222,1225,1237,1249,1252,1255,1258,1261,1264].includes(code)) {
-      // Snow / Sleet / Blizzard
-      bg = "linear-gradient(135deg, #cbd5e1, #e2e8f0, #94a3b8)";
+      wxColor = "rgba(186,230,253,0.55)"; // snow: icy light blue
     } else if ([1087,1273,1276,1279,1282].includes(code)) {
-      // Thunder / Lightning
-      bg = "linear-gradient(135deg, #4c1d95, #1e1b4b, #312e81)";
-    } else if ([1282].includes(code)) {
-      // Heavy snow thunder
-      bg = "linear-gradient(135deg, #334155, #cbd5e1)";
+      wxColor = "rgba(109,40,217,0.75)"; // thunder: purple
     }
 
-    card.style.background = bg;
+    // Apply as CSS custom property — the .weather-card CSS reads this via var(--wx-color)
+    card.style.setProperty("--wx-color", wxColor);
 
     const icon = el(".weather-icon");
     icon.src = `https:${data.current.condition.icon}`;
