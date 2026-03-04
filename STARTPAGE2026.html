@@ -48,7 +48,6 @@
   z-index: 9999;
 }
 
-
 .ticker-content {
   display: inline-block;
   padding-left: 100%;
@@ -95,7 +94,9 @@ body {
   height: auto;
   display: flex;
   flex-direction: column;
-  padding-top: 5px; /* Matches ticker height */
+  padding-top: 5px;
+  /* Extra bottom padding so content doesn't hide behind radio bar */
+  padding-bottom: 52px;
 }
 
 .link-button {
@@ -112,7 +113,7 @@ body {
   border-radius: 12px;
   height: 270px;
   position: relative;
-  min-height: 375px; /* Slightly increased to fit new detail */
+  min-height: 375px;
 }
 
 .link-column {
@@ -138,6 +139,176 @@ body {
   100% { transform: translateX(-100%); }
 }
 
+/* ─── NEWS TICKER ─────────────────────────────────────────── */
+#news-ticker-wrap {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+  height: 28px;
+  background: #0f172a;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+#news-ticker-inner {
+  display: inline-block;
+  padding-left: 100%;
+  white-space: nowrap;
+  will-change: transform;
+}
+.news-headline {
+  display: inline;
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  margin: 0 2.5em;
+  transition: opacity 0.15s;
+  line-height: 28px;
+}
+.news-headline:hover { opacity: 0.75; text-decoration: underline; }
+.news-headline.src-nhl   { color: #60a5fa; }   /* blue   */
+.news-headline.src-cbc   { color: #f87171; }   /* red    */
+.news-headline.src-reuters { color: #fbbf24; } /* amber  */
+.news-headline.src-ap    { color: #34d399; }   /* green  */
+.news-src-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  opacity: 0.55;
+  margin-right: 0.3em;
+  vertical-align: middle;
+}
+
+/* ─── RADIO BAR ──────────────────────────────────────────── */
+#radio-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 48px;
+  background-color: #111827;
+  border-top: 1px solid #374151;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  z-index: 9999;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+
+#radio-bar button {
+  background: #1f2937;
+  border: none;
+  color: #e5e7eb;
+  border-radius: 5px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+#radio-bar button:hover { background: #374151; }
+
+#radio-play-bar {
+  background: #059669 !important;
+  font-weight: 600;
+}
+#radio-play-bar:hover { background: #047857 !important; }
+#radio-play-bar.paused {
+  background: #d97706 !important;
+}
+#radio-play-bar.paused:hover { background: #b45309 !important; }
+
+#radio-station-bar {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 5px;
+  color: #e5e7eb;
+  font-size: 0.75rem;
+  padding: 4px 6px;
+  flex: 1;
+  min-width: 0;
+  max-width: 260px;
+  cursor: pointer;
+}
+
+#radio-vol-bar {
+  width: 80px;
+  flex-shrink: 0;
+  accent-color: #10b981;
+  cursor: pointer;
+}
+
+#radio-nowplaying-bar {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex-shrink: 0;
+  max-width: 160px;
+  white-space: nowrap;
+}
+
+#radio-nowplaying-bar span {
+  color: #e5e7eb;
+}
+
+#radio-status-bar {
+  font-size: 0.7rem;
+  color: #6b7280;
+  flex-shrink: 0;
+}
+
+/* pulsing dot when playing */
+#radio-status-bar.playing::before {
+  content: "● ";
+  color: #10b981;
+  animation: pulse-dot 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
+}
+
+/* ─── LOUDWIRE TICKER inside radio bar ───────────────────── */
+#loudwire-ticker-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+#loudwire-ticker-inner {
+  display: inline-block;
+  white-space: nowrap;
+  will-change: transform;
+  font-size: 0.72rem;
+}
+.lw-headline {
+  display: inline;
+  color: #f97316;
+  text-decoration: none;
+  margin: 0 2em;
+  transition: opacity 0.15s;
+}
+.lw-headline:hover { opacity: 0.7; text-decoration: underline; }
+.lw-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #78716c;
+  margin-right: 0.35em;
+}
+
+/* hide on small screens: shrink gracefully */
+@media (max-width: 600px) {
+  #radio-nowplaying-bar { display: none; }
+  #radio-vol-bar { width: 55px; }
+  #radio-station-bar { max-width: 120px; }
+}
 </style>
 </head>
 <body>
@@ -196,54 +367,38 @@ body {
       <div class="text-xs mt-2">Last updated: <span class="weather-updated">--:--</span></div>
     </div>
 
-    <!-- Weather Card: Cameron Settlement / Lower Caledonia -->
-<div class="bg-gray-800 p-4 rounded-xl text-gray-100 weather-card relative" data-weather-card
-     data-location-label="Cameron Settlement / Lower Caledonia, NS"
-     data-query="45.283333,-62.45">
-  
-  <div class="absolute top-2 right-2 flex gap-2">
-    <a href="https://weather.com/weather/today/l/45.283333,-62.45">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/cloud.png"
-           alt="Weather Channel" title="Weather Channel">
-    </a>
-    <a href="https://www.wunderground.com/weather/ca/lower-caledonia">
-      <img src="https://img.icons8.com/ios-filled/24/ffffff/storm.png"
-           alt="Weather Underground" title="Weather Underground">
-    </a>
+    <!-- GIF Box -->
+<div id="giphy-box"
+     class="bg-gray-800 rounded-xl relative overflow-hidden"
+     style="min-height:375px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;"
+     title="Click for a new GIF">
+
+  <div id="giphy-loading"
+       style="color:#6b7280;font-size:0.8rem;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+    Loading GIF...
   </div>
 
-  <div class="text-lg font-bold mb-1 weather-location">Loading...</div>
-  <div class="flex items-center space-x-2 mb-2">
-    <img class="weather-icon w-12 h-12" src="" alt="">
-    <div>
-      <div class="text-3xl font-extrabold weather-temp">--°C</div>
-      <div class="text-sm capitalize weather-condition">Fetching weather...</div>
-    </div>
+  <img id="giphy-img"
+       src=""
+       alt="Random GIF"
+       style="width:100%;height:375px;object-fit:cover;display:none;border-radius:12px;">
+
+  <!-- overlay: title + click hint -->
+  <div style="position:absolute;bottom:0;left:0;right:0;
+              background:linear-gradient(transparent,rgba(0,0,0,0.75));
+              padding:10px 10px 6px;border-radius:0 0 12px 12px;">
+    <div id="giphy-title" style="font-size:0.7rem;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
+    <div style="font-size:0.6rem;color:#9ca3af;margin-top:2px;">🎲 click for new gif &nbsp;·&nbsp; auto-refreshes every 3 min</div>
   </div>
 
-
-      <div class="grid grid-cols-2 gap-2 text-xs mb-2">
-        <div>Feels Like: <span class="weather-feelslike">--°C</span></div>
-        <div>Humidity: <span class="weather-humidity">--%</span></div>
-        <div>Wind: <span class="weather-wind">-- km/h</span></div>
-        <div>Pressure: <span class="weather-pressure">-- hPa</span></div>
-        <div>Precip: <span class="weather-pop">--%</span></div>
-        <div>UV: <span class="weather-uv">--</span></div>
-        <div>Sunrise: <span class="weather-sunrise">--:--</span></div>
-        <div>Sunset: <span class="weather-sunset">--:--</span></div>
-      </div>
-
-      <div class="mt-3">
-        <div class="text-xs font-bold mb-1">5-Day Forecast</div>
-        <div class="weather-forecast" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem;text-align:center;font-size:.75rem;"></div>
-      </div>
-
-      <div class="text-xs mt-2">Last updated: <span class="weather-updated">--:--</span></div>
-    </div>
-
+  <!-- GIPHY attribution (required by their API terms) -->
+  <div style="position:absolute;top:6px;right:8px;">
+    <img src="https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif"
+         style="display:none;" alt="">
+    <span style="font-size:0.55rem;color:#ffffff99;letter-spacing:0.05em;">Powered by GIPHY</span>
   </div>
+</div>  </div>
 
-  <!-- Keep your LiveCoinWatch widget below both cards -->
   <script defer src="https://www.livecoinwatch.com/static/lcw-widget.js"></script>
   <div class="livecoinwatch-widget-5" lcw-base="CAD" lcw-color-tx="#999999" lcw-marquee-1="coins" lcw-marquee-2="movers" lcw-marquee-items="10"></div>
 </div>
@@ -251,14 +406,13 @@ body {
   <!-- Main Content Column -->
   <div class="col-span-1 lg:col-span-3">
     <div class="bg-gray-900 rounded-xl p-4">
-<h1 id="daily-banner"
-    class="text-xl font-bold mb-2 overflow-hidden whitespace-nowrap relative">
-  <span id="daily-banner-text" class="inline-block will-change-transform"></span>
-</h1>
+<div id="news-ticker-wrap">
+  <div id="news-ticker-inner">
+    <span style="color:#6b7280;font-size:0.8rem;line-height:28px;">Loading headlines...</span>
+  </div>
+</div>
 
-      <p id="life-quote"
-   class="text-sm text-gray-400 whitespace-nowrap overflow-hidden truncate">
-</p>
+<p id="life-quote" class="text-sm text-gray-400 whitespace-nowrap overflow-hidden truncate mb-3"></p>
 
       
 <!-- Link Buttons and Other Content -->
@@ -358,7 +512,6 @@ body {
 <li><a href="#" class="hover:text-blue-400">Traffic</a></li>
 </ul></div>
 </div>
-<!-- Add all the rest of your 'grid grid-cols-4 md:grid-cols-10...' links here -->
 <div class="grid grid-cols-6 md:grid-cols-9 gap-7 text-sm p-8">
   <div>
     <h3 class="text-white font-bold mb-2">BANKING</h3>
@@ -494,8 +647,67 @@ body {
   </div>
 </div>
 
+<!-- ─── RADIO BAR (bottom, full-width) ─────────────────────────────────── -->
+<div id="radio-bar">
+  <!-- Label -->
+  <span style="font-size:0.7rem;color:#6b7280;flex-shrink:0;letter-spacing:0.05em;">📻 RADIO</span>
+
+  <!-- Prev / Play / Stop / Next -->
+  <button id="radio-prev-bar" title="Previous">⏮</button>
+  <button id="radio-play-bar">▶</button>
+  <button id="radio-stop-bar" title="Stop">■</button>
+  <button id="radio-next-bar" title="Next">⏭</button>
+
+  <!-- Station selector -->
+  <select id="radio-station-bar">
+    <optgroup label="CANADA Rock">
+      <option value="https://ais-sa2.cdnstream1.com/1369_128">CRUCIAL VELOCITY</option>
+      <option value="https://geocom.leanstream.co/CFNYFM-MP3-2">102.1 The EDGE TORONTO</option>
+      <option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CHOMFM.mp3">97.7 CHOM-FM MONTREAL</option>
+      <option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CHTZFM.mp3">97.7 HTZ-FM St. Catharines ON</option>
+      <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CFRQFM-MP3-2">Q104 HALIFAX</option>
+      <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CJKRFM-MP3-2">POWER 97 WINNIPEG</option>
+      <option value="https://cob-ais.leanstream.co/CFJBFM">ROCK 95 BARRIE</option>
+      <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CKXGFM-MP3">K-ROCK ST.JOHNS NL</option>
+    </optgroup>
+    <optgroup label="EUROPE">
+      <option value="https://ais-edge83-jbmedia-nyc04.cdnstream.com/pureclassicrock">CLASSIC ROCK</option>
+      <option value="http://quincy.torontocast.com:3110/stream">HAIR METAL</option>
+      <option value="https://radio21.streamabc.net/radio21-rrludwigshafen-mp3-128-3576211">ROCKLAND GERMANY</option>
+      <option value="https://tbfmonli.radioca.st/">HARD ROCK HELL UK</option>
+    </optgroup>
+    <optgroup label="Retro">
+      <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CJOTFM-MP3-2">BOOM 99.7 OTTAWA</option>
+      <option value="https://evanov.streamb.live/SB00226">LITE 92 HAMILTON</option>
+      <option value="https://ais-edge66-ams02.cdnstream.com/1007_a0theoffice64k">The OFFICE - SOFT HITS</option>
+      <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CKECFM-MP3">94.1 The BREEZE NS</option>
+    </optgroup>
+    <optgroup label="DIVERSE UNIVERSE">
+      <option value="https://live.citr.ca/live.aac">101.9 VANCOUVER</option>
+      <option value="https://hestia2.cdnstream.com/1301_128">REGGAE 141 JAMAICA</option>
+      <option value="https://streaming.live365.com/a57422">SMOOTH JAZZ FLORIDA</option>
+      <option value="https://stream2.statsradio.com/8036/stream">RADIO CKJM CHETICAMP</option>
+    </optgroup>
+  </select>
+
+  <!-- Volume -->
+  <span style="font-size:0.7rem;color:#6b7280;flex-shrink:0;">VOL</span>
+  <input id="radio-vol-bar" type="range" min="0" max="1" step="0.01" value="0.8">
+
+  <!-- Loudwire headline ticker -->
+  <div id="loudwire-ticker-wrap">
+    <div id="loudwire-ticker-inner"><span style="color:#78716c;font-size:0.72rem;">Loading Loudwire...</span></div>
+  </div>
+
+  <!-- Now playing / status -->
+  <div id="radio-nowplaying-bar">Now: <span id="radio-np-text">—</span></div>
+  <div id="radio-status-bar">Idle</div>
+
+  <audio id="radio-audio" preload="none" crossorigin="anonymous"></audio>
+</div>
+
+<!-- Scripts -->
 <script>
-// NHL Ticker
 async function fetchNHLScores() {
   try {
     const res = await fetch("https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard");
@@ -529,19 +741,17 @@ setInterval(fetchNHLScores, 300000);
   document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll('a[href]').forEach(link => {
       link.setAttribute('target', '_blank');
-      link.setAttribute('rel', 'noopener noreferrer'); // this is for security
+      link.setAttribute('rel', 'noopener noreferrer');
     });
   });
 </script>
 
-<!-- New Detailed Weather Script -->
 <script>
-const WEATHER_API_KEY = "094538f60cb14870a9805051252305"; // yeah it's exposed, that's on you
+const WEATHER_API_KEY = "094538f60cb14870a9805051252305";
 
 async function fetchAndRenderCard(card) {
-  const query = card.dataset.query;                // e.g. "Pictou, Nova Scotia" or "B0H 1E0"
+  const query = card.dataset.query;
   const label = card.dataset.locationLabel || query;
-
   const el = (sel) => card.querySelector(sel);
 
   try {
@@ -553,40 +763,25 @@ async function fetchAndRenderCard(card) {
     el(".weather-location").textContent = `${data.location.name}, ${data.location.region}`;
     el(".weather-temp").textContent = `${data.current.temp_c}°C`;
     el(".weather-condition").textContent = data.current.condition.text;
-
     const icon = el(".weather-icon");
     icon.src = `https:${data.current.condition.icon}`;
     icon.alt = data.current.condition.text;
-
     el(".weather-feelslike").textContent = `${data.current.feelslike_c}°C`;
     el(".weather-humidity").textContent = `${data.current.humidity}%`;
     el(".weather-wind").textContent = `${data.current.wind_kph} km/h ${data.current.wind_dir}`;
     el(".weather-pressure").textContent = `${data.current.pressure_mb} hPa`;
     el(".weather-pop").textContent = `${data.forecast.forecastday?.[0]?.day?.daily_chance_of_rain ?? 0}%`;
     el(".weather-uv").textContent = data.current.uv;
-
     el(".weather-sunrise").textContent = data.forecast.forecastday[0].astro.sunrise;
     el(".weather-sunset").textContent = data.forecast.forecastday[0].astro.sunset;
+    el(".weather-updated").textContent = new Date().toLocaleTimeString('en-CA', { hour: '2-digit', minute: '2-digit' });
 
-    el(".weather-updated").textContent = new Date().toLocaleTimeString('en-CA', {
-      hour: '2-digit', minute: '2-digit'
-    });
-
-    // 5-day forecast
     const forecastHTML = data.forecast.forecastday.map(day => {
       const date = new Date(day.date);
       const weekday = date.toLocaleDateString('en-CA', { weekday: 'short' });
-      return `
-        <div>
-          <div>${weekday}</div>
-          <img src="https:${day.day.condition.icon}" alt="${day.day.condition.text}" style="display:block;margin:0 auto;width:40px;height:40px;">
-          <div>${Math.round(day.day.maxtemp_c)}° / ${Math.round(day.day.mintemp_c)}°</div>
-        </div>
-      `;
+      return `<div><div>${weekday}</div><img src="https:${day.day.condition.icon}" alt="${day.day.condition.text}" style="display:block;margin:0 auto;width:40px;height:40px;"><div>${Math.round(day.day.maxtemp_c)}° / ${Math.round(day.day.mintemp_c)}°</div></div>`;
     }).join("");
-
     el(".weather-forecast").innerHTML = forecastHTML;
-
   } catch (err) {
     el(".weather-location").textContent = `${label} (Unavailable)`;
     el(".weather-condition").textContent = "Weather fetch failed";
@@ -597,186 +792,48 @@ async function fetchAllWeatherCards() {
   const cards = document.querySelectorAll("[data-weather-card]");
   await Promise.all([...cards].map(fetchAndRenderCard));
 }
-
 fetchAllWeatherCards();
-setInterval(fetchAllWeatherCards, 900000); // every 15 min
+setInterval(fetchAllWeatherCards, 900000);
 </script>
-<!-- Radio Player (Bottom Right) -->
-<div id="radio-player"
-     class="fixed bottom-4 right-4 z-[10000] w-[360px] max-w-[92vw] bg-gray-900/95 backdrop-blur
-            border border-gray-700 rounded-xl shadow-lg p-3 text-gray-100">
 
-  <div class="flex items-center justify-between mb-2">
-    <div class="text-sm font-bold">Radio</div>
-    <button id="radio-close" class="text-gray-400 hover:text-gray-200" title="Hide player">✕</button>
-  </div>
-
-  <div class="flex gap-2 items-center mb-2">
-    <button id="radio-prev"
-            class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-sm"
-            title="Previous station">⏮</button>
-
-    <button id="radio-play"
-            class="px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 font-semibold text-sm">
-      ▶ Play
-    </button>
-
-    <button id="radio-stop"
-            class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-sm">
-      ■ Stop
-    </button>
-
-    <button id="radio-next"
-            class="px-3 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 font-semibold text-sm"
-            title="Next station">⏭</button>
-  </div>
-
-  <div class="mb-2">
-    <select id="radio-station"
-            class="w-full bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 text-sm">
-
-      <!-- listen to the RADIO -->
-     
-
-      <optgroup label="CANADA Rock">
-        <option value="https://ais-sa2.cdnstream1.com/1369_128">
-          CRUCIAL VELOCITY-MILVERTON ON
-        </option>
-        <option value="https://geocom.leanstream.co/CFNYFM-MP3-2">
-          102.1 The EDGE TORONTO
-        </option>
-        <option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CHOMFM.mp3">
-          97.7 CHOM-FM MONTREAL
-        </option>        
-	<option value="https://playerservices.streamtheworld.com/api/livestream-redirect/CHTZFM.mp3">
-          97.7 HTZ-FM St. Catharines ON
-        </option>        
-	<option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CFRQFM-MP3-2">
-          Q104 HALIFAX
-        </option>        
-	<option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CJKRFM-MP3-2">
-          POWER 97 WINNIPEG
-        </option>
-	<option value="https://cob-ais.leanstream.co/CFJBFM">
-          ROCK 95 BARRIE
-        </option>
-	<option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CKXGFM-MP3">
-          K-ROCK ST.JOHNS NL
-        </option>
-	<option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CJKRFM-MP3-2">
-          POWER 97 WINNIPEG
-        </option>
-
-	<optgroup label="EUROPE">
-        <option value="https://ais-edge83-jbmedia-nyc04.cdnstream.com/pureclassicrock">
-          CLASSIC ROCK
-        <option value="http://quincy.torontocast.com:3110/stream">
-          HAIR METAL
-        </option>
-      </optgroup>
-        <option value="https://radio21.streamabc.net/radio21-rrludwigshafen-mp3-128-3576211">
-             ROCKLAND GERMANY
-        </option>
-        <option value="https://tbfmonli.radioca.st/;">
-             HARD ROCK HELL UK
-        </option>
-        <option value="https://ais-edge83-jbmedia-nyc04.cdnstream.com/pureclassicrock">
-             CLASSIC ROCK
-        <option value="http://quincy.torontocast.com:3110/stream">
-             HAIR METAL
-        </option>
-      </optgroup>
-
-      <optgroup label="Retro">
-        <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CJOTFM-MP3-2">
-          BOOM 99.7 OTTAWA 
-        </option>
-        <option value="https://evanov.streamb.live/SB00226">
-          LITE 92 HAMILTON
-        </option>
-        <option value="https://ais-edge66-ams02.cdnstream.com/1007_a0theoffice64k">
-          The OFFICE - SOFT HITS
-        </option>
-        <option value="https://nyc-edge1-entry1.leanstream-hd.com:2112/CKECFM-MP3">
-          94.1 The BREEZE NS
-        </option>
-      </optgroup>
-
-      <optgroup label="DIVERSE UNIVERSE">
-        <option value="https://live.citr.ca/live.aac">
-          101.9 VANCOUVER
-        </option>
-	<option value="https://hestia2.cdnstream.com/1301_128">
-          REGGAE 141 JAMAICA
-        </option>
-        <option value="https://streaming.live365.com/a57422">
-          SMOOTH JAZZ FLORIDA
-        </option>
-	<option value="https://stream2.statsradio.com/8036/stream">
-          RADIO CKJM CHETICAMP CAPE BRETON
-        </option>
-      </optgroup>
-
-    </select>
-  </div>
-
-  <div class="flex items-center gap-2 mb-2">
-    <div class="text-xs text-gray-400 w-14">Volume</div>
-    <input id="radio-volume" type="range" min="0" max="1" step="0.01" value="0.8" class="w-full">
-  </div>
-
-  <div class="text-xs text-gray-400">
-    Now playing: <span id="radio-nowplaying" class="text-gray-200">—</span>
-  </div>
-
-  <div class="text-xs text-gray-400 mt-1">
-    Status: <span id="radio-status" class="text-gray-200">Idle</span>
-  </div>
-
-  <audio id="radio-audio" preload="none" crossorigin="anonymous"></audio>
-</div>
-
+<!-- Radio Bar Script -->
 <script>
 (() => {
-  const LS_KEY = "startpage_radio_v1";
+  const LS_KEY = "startpage_radio_v2";
 
-  const player     = document.getElementById("radio-player");
   const audio      = document.getElementById("radio-audio");
-  const playBtn    = document.getElementById("radio-play");
-  const stopBtn    = document.getElementById("radio-stop");
-  const prevBtn    = document.getElementById("radio-prev");
-  const nextBtn    = document.getElementById("radio-next");
-  const closeBtn   = document.getElementById("radio-close");
-  const stationSel = document.getElementById("radio-station");
-  const vol        = document.getElementById("radio-volume");
-  const statusEl   = document.getElementById("radio-status");
-  const nowEl      = document.getElementById("radio-nowplaying");
+  const playBtn    = document.getElementById("radio-play-bar");
+  const stopBtn    = document.getElementById("radio-stop-bar");
+  const prevBtn    = document.getElementById("radio-prev-bar");
+  const nextBtn    = document.getElementById("radio-next-bar");
+  const stationSel = document.getElementById("radio-station-bar");
+  const vol        = document.getElementById("radio-vol-bar");
+  const statusEl   = document.getElementById("radio-status-bar");
+  const npText     = document.getElementById("radio-np-text");
 
-  const setStatus = (msg) => statusEl.textContent = msg;
-  const setNow = (msg) => nowEl.textContent = msg || "—";
+  const setStatus = (msg, isPlaying) => {
+    statusEl.textContent = msg;
+    statusEl.classList.toggle("playing", !!isPlaying);
+  };
 
   function getState() {
-    try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); }
-    catch { return {}; }
+    try { return JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch { return {}; }
   }
   function saveState(partial) {
-    const cur = getState();
-    localStorage.setItem(LS_KEY, JSON.stringify({ ...cur, ...partial }));
+    localStorage.setItem(LS_KEY, JSON.stringify({ ...getState(), ...partial }));
   }
 
   function updatePlayButton(isPlaying) {
     if (isPlaying) {
-      playBtn.textContent = "⏸ Pause";
-      playBtn.classList.remove("bg-emerald-600","hover:bg-emerald-500");
-      playBtn.classList.add("bg-amber-500","hover:bg-amber-400");
+      playBtn.textContent = "⏸";
+      playBtn.classList.add("paused");
     } else {
-      playBtn.textContent = "▶ Play";
-      playBtn.classList.remove("bg-amber-500","hover:bg-amber-400");
-      playBtn.classList.add("bg-emerald-600","hover:bg-emerald-500");
+      playBtn.textContent = "▶";
+      playBtn.classList.remove("paused");
     }
   }
 
-  function selectedStationName() {
+  function selectedName() {
     const opt = stationSel.options[stationSel.selectedIndex];
     return opt ? opt.textContent.trim() : "";
   }
@@ -784,131 +841,86 @@ setInterval(fetchAllWeatherCards, 900000); // every 15 min
   function selectIndex(i) {
     const n = stationSel.options.length;
     if (!n) return;
-    const idx = (i + n) % n;
-    stationSel.selectedIndex = idx;
-    saveState({ stationIndex: idx });
+    stationSel.selectedIndex = (i + n) % n;
+    saveState({ stationIndex: stationSel.selectedIndex });
     audio.src = stationSel.value;
-    setStatus("Station selected");
-    setNow("—");
+    setStatus("Station changed");
+    npText.textContent = "—";
     if (!audio.paused) play();
   }
 
+  // Restore saved state
   const saved = getState();
-
-  // restore volume
   const startVol = (typeof saved.volume === "number") ? saved.volume : 0.8;
   vol.value = String(startVol);
   audio.volume = startVol;
-
-  // restore station
-  if (typeof saved.stationIndex === "number" &&
-      saved.stationIndex >= 0 &&
-      saved.stationIndex < stationSel.options.length) {
+  if (typeof saved.stationIndex === "number" && saved.stationIndex < stationSel.options.length) {
     stationSel.selectedIndex = saved.stationIndex;
   }
-
-  // set initial source
   audio.src = stationSel.value;
   setStatus("Idle");
-  setNow("—");
   updatePlayButton(false);
 
   async function play() {
     try {
       if (audio.src !== stationSel.value) audio.src = stationSel.value;
       setStatus("Connecting...");
-      setNow(selectedStationName());
+      npText.textContent = selectedName();
       await audio.play();
-      setStatus("Playing");
+      setStatus("Playing", true);
       updatePlayButton(true);
     } catch (e) {
-      setStatus("Blocked / failed to play");
+      setStatus("Failed");
       updatePlayButton(false);
-      console.error(e);
     }
-  }
-
-  function pause() {
-    audio.pause();
-    setStatus("Paused");
-    updatePlayButton(false);
   }
 
   function stop() {
     audio.pause();
     audio.currentTime = 0;
     setStatus("Stopped");
-    setNow("—");
+    npText.textContent = "—";
     updatePlayButton(false);
   }
 
-  // buttons
-  playBtn.addEventListener("click", () => audio.paused ? play() : pause());
+  playBtn.addEventListener("click", () => audio.paused ? play() : (audio.pause(), setStatus("Paused"), updatePlayButton(false)));
   stopBtn.addEventListener("click", stop);
   nextBtn.addEventListener("click", () => selectIndex(stationSel.selectedIndex + 1));
   prevBtn.addEventListener("click", () => selectIndex(stationSel.selectedIndex - 1));
-  closeBtn.addEventListener("click", () => { player.style.display = "none"; });
 
-  // dropdown
   stationSel.addEventListener("change", () => {
     saveState({ stationIndex: stationSel.selectedIndex });
     audio.src = stationSel.value;
+    npText.textContent = "—";
     setStatus("Station selected");
-    setNow("—");
     if (!audio.paused) play();
   });
 
-  // volume
   vol.addEventListener("input", () => {
     const v = parseFloat(vol.value);
     audio.volume = v;
     saveState({ volume: v });
   });
 
-  // keyboard shortcuts (don’t hijack typing in inputs/select)
   document.addEventListener("keydown", (e) => {
-    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : "";
+    const tag = (e.target?.tagName || "").toLowerCase();
     if (tag === "input" || tag === "select" || tag === "textarea") return;
-
-    if (e.code === "Space") {
-      e.preventDefault();
-      audio.paused ? play() : pause();
-    }
-    if (e.code === "ArrowUp") {
-      e.preventDefault();
-      const v = Math.min(1, audio.volume + 0.05);
-      audio.volume = v;
-      vol.value = String(v);
-      saveState({ volume: v });
-    }
-    if (e.code === "ArrowDown") {
-      e.preventDefault();
-      const v = Math.max(0, audio.volume - 0.05);
-      audio.volume = v;
-      vol.value = String(v);
-      saveState({ volume: v });
-    }
-    if (e.code === "ArrowRight") {
-      e.preventDefault();
-      selectIndex(stationSel.selectedIndex + 1);
-    }
-    if (e.code === "ArrowLeft") {
-      e.preventDefault();
-      selectIndex(stationSel.selectedIndex - 1);
-    }
+    if (e.code === "Space") { e.preventDefault(); audio.paused ? play() : (audio.pause(), setStatus("Paused"), updatePlayButton(false)); }
+    if (e.code === "ArrowUp") { e.preventDefault(); const v = Math.min(1, audio.volume + 0.05); audio.volume = v; vol.value = String(v); saveState({ volume: v }); }
+    if (e.code === "ArrowDown") { e.preventDefault(); const v = Math.max(0, audio.volume - 0.05); audio.volume = v; vol.value = String(v); saveState({ volume: v }); }
+    if (e.code === "ArrowRight") { e.preventDefault(); selectIndex(stationSel.selectedIndex + 1); }
+    if (e.code === "ArrowLeft") { e.preventDefault(); selectIndex(stationSel.selectedIndex - 1); }
   });
 
-  // audio events
-  audio.addEventListener("playing", () => { setStatus("Playing"); updatePlayButton(true); });
+  audio.addEventListener("playing", () => { setStatus("Playing", true); updatePlayButton(true); });
   audio.addEventListener("waiting", () => setStatus("Buffering..."));
   audio.addEventListener("stalled", () => setStatus("Stalled..."));
   audio.addEventListener("error", () => setStatus("Stream error"));
 
-  // best-effort Media Session metadata (usually just station name)
   if ("mediaSession" in navigator) {
-    navigator.mediaSession.metadata = new MediaMetadata({ title: selectedStationName() });
+    navigator.mediaSession.metadata = new MediaMetadata({ title: selectedName() });
     stationSel.addEventListener("change", () => {
-      navigator.mediaSession.metadata = new MediaMetadata({ title: selectedStationName() });
+      navigator.mediaSession.metadata = new MediaMetadata({ title: selectedName() });
     });
   }
 })();
@@ -945,109 +957,237 @@ setInterval(fetchAllWeatherCards, 900000); // every 15 min
     "Let the liquor do the thinkin', bud",
     "I spin more rhymes than a Lazy Susan, and I'm innocent until my guilt is proven",
     "What are you looking at my gut for?",
-    "5200 bucks a year! Come on! Life’s good.",
-    "I’m sober enough to know what I’m doing and drunk enough to really enjoy it"
+    "5200 bucks a year! Come on! Life's good.",
+    "I'm sober enough to know what I'm doing and drunk enough to really enjoy it"
   ];
-
   const el = document.getElementById("life-quote");
   if (!el) return;
-
   el.textContent = quotes[Math.floor(Math.random() * quotes.length)];
 })();
 </script>
+
 <script>
+// ─── NEWS HEADLINE TICKER ──────────────────────────────────────────────────
 (async () => {
-  const container = document.getElementById("daily-banner");
-  const textEl = document.getElementById("daily-banner-text");
-  if (!container || !textEl) return;
 
-  const insults = [
-    "twat waffle",
-    "walking OSHA violation",
-    "dumb ass motherfucker",
-    "brain dead whiffle bat",
-    "intoxicated fish mitten",
-    "unripened cock batter",
-    "coagulated spitoon licker",
-    "fat tub of recycled pig nipples"
+  // Try multiple CORS proxies in order until one works
+  const PROXIES = [
+    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://thingproxy.freeboard.io/fetch/${url}`,
   ];
 
-  const weirdKeywords = [
-    "sex","disgusting","inserted","intoxicated","accident","explosion",
-    "launch","crash","collapse","banned","illegal","failed",
-    "largest","smallest","only","strange"
+  const sources = [
+    { label: "NHL",     url: "https://www.nhl.com/rss/news.xml",                          cls: "src-nhl"     },
+    { label: "CBC",     url: "https://www.cbc.ca/cmlink/rss-topstories",                  cls: "src-cbc"     },
+    { label: "BBC",     url: "https://feeds.bbci.co.uk/news/world/rss.xml",               cls: "src-reuters" },
+    { label: "AP",      url: "https://feeds.feedburner.com/ApTopHeadlines",               cls: "src-ap"      }
   ];
 
-  const now = new Date();
-  const dateStr = now.toLocaleDateString("en-CA", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
-  });
+  const inner = document.getElementById("news-ticker-inner");
 
-  const insult = insults[Math.floor(Math.random() * insults.length)];
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
+  async function fetchWithProxy(feedUrl) {
+    for (const makeProxy of PROXIES) {
+      try {
+        const proxyUrl = makeProxy(feedUrl);
+        const res = await fetch(proxyUrl, { cache: "no-store" });
+        if (!res.ok) continue;
 
-  let fact = "humanity did something questionable.";
+        let xmlText = "";
 
-  try {
-    const res = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/feed/onthisday/events/${month}/${day}`
-    );
-    if (res.ok) {
-      const data = await res.json();
-      if (data.events?.length) {
-        const weird = data.events.filter(e =>
-          weirdKeywords.some(k => e.text.toLowerCase().includes(k))
-        );
-        const pool = weird.length ? weird : data.events;
-        const e = pool[Math.floor(Math.random() * pool.length)];
-        fact = `${e.year}: ${e.text}`;
+        // allorigins returns JSON with a .contents field
+        if (proxyUrl.includes("allorigins")) {
+          const json = await res.json();
+          xmlText = json.contents || "";
+        } else {
+          xmlText = await res.text();
+        }
+
+        if (!xmlText || xmlText.length < 100) continue;
+
+        const parser = new DOMParser();
+        const xml = parser.parseFromString(xmlText, "text/xml");
+        const items = [...xml.querySelectorAll("item")].slice(0, 12);
+        if (items.length === 0) continue;
+
+        return items.map(item => {
+          const title = item.querySelector("title")?.textContent?.replace(/<!\[CDATA\[|\]\]>/g, "").trim() || "";
+          // <link> in RSS is sometimes a text node sibling, not a child
+          let link = "";
+          const linkEl = item.querySelector("link");
+          if (linkEl) {
+            link = linkEl.textContent?.trim() || linkEl.nextSibling?.nodeValue?.trim() || "";
+          }
+          if (!link) link = item.querySelector("guid")?.textContent?.trim() || "#";
+          return { title, link };
+        }).filter(h => h.title.length > 5);
+
+      } catch (e) {
+        continue; // try next proxy
       }
     }
-  } catch {}
+    return []; // all proxies failed
+  }
 
-  const fullText = `TODAY IS ${dateStr}, YOU ${insult}. ${fact}`;
-  textEl.textContent = fullText;
+  async function fetchFeed(src) {
+    const items = await fetchWithProxy(src.url);
+    return items.map(h => ({ ...h, cls: src.cls, label: src.label }));
+  }
 
-  // Wait 1 frame so we can measure widths correctly
-  requestAnimationFrame(() => {
-    const containerWidth = container.clientWidth;
-    const textWidth = textEl.scrollWidth;
+  async function loadTicker() {
+    inner.innerHTML = `<span style="color:#6b7280;font-size:0.8rem;line-height:28px;">Loading headlines...</span>`;
 
-    // Reset any previous animation
-    textEl.style.animation = "none";
-    textEl.style.paddingLeft = "0";
-
-    // Only scroll if it overflows
-    if (textWidth > containerWidth) {
-      const distance = textWidth + containerWidth;
-
-      // Speed control: bigger number = slower scroll
-      const pxPerSecond = 35; // tweak later if you want
-      const duration = Math.max(18, distance / pxPerSecond);
-
-      textEl.style.paddingLeft = "100%";
-      textEl.style.animation = `banner-scroll ${duration}s linear infinite`;
+    const results = await Promise.all(sources.map(fetchFeed));
+    const headlines = [];
+    const maxLen = Math.max(0, ...results.map(r => r.length));
+    for (let i = 0; i < maxLen; i++) {
+      results.forEach(group => { if (group[i]) headlines.push(group[i]); });
     }
-  });
+
+    if (!headlines.length) {
+      inner.innerHTML = `<span style="color:#ef4444;font-size:0.8rem;line-height:28px;">⚠ All headline feeds failed. Check F12 console.</span>`;
+      return;
+    }
+
+    const sep = `<span style="color:#374151;margin:0 1.2em;line-height:28px;">◆</span>`;
+    inner.innerHTML = headlines.map(h =>
+      `<a href="${h.link}" target="_blank" rel="noopener noreferrer"
+          class="news-headline ${h.cls}"><span class="news-src-label">[${h.label}]</span>${h.title}</a>`
+    ).join(sep);
+
+    inner.style.animation = "none";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const duration = Math.max(30, inner.scrollWidth / 80);
+        inner.style.animation = `banner-scroll ${duration}s linear infinite`;
+      });
+    });
+  }
+
+  loadTicker();
+  setInterval(loadTicker, 600000);
 })();
 </script>
 
+<script>
+// ─── LOUDWIRE RSS TICKER ───────────────────────────────────────────────────
+(async () => {
+  const PROXIES = [
+    url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+    url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    url => `https://thingproxy.freeboard.io/fetch/${url}`,
+  ];
 
+  const FEED = "https://loudwire.com/feed/";
+  const inner = document.getElementById("loudwire-ticker-inner");
+
+  async function fetchLoudwire() {
+    for (const makeProxy of PROXIES) {
+      try {
+        const res = await fetch(makeProxy(FEED), { cache: "no-store" });
+        if (!res.ok) continue;
+
+        let xmlText = "";
+        if (makeProxy(FEED).includes("allorigins")) {
+          const json = await res.json();
+          xmlText = json.contents || "";
+        } else {
+          xmlText = await res.text();
+        }
+        if (!xmlText || xmlText.length < 100) continue;
+
+        const xml = new DOMParser().parseFromString(xmlText, "text/xml");
+        const items = [...xml.querySelectorAll("item")].slice(0, 15);
+        if (!items.length) continue;
+
+        return items.map(item => ({
+          title: item.querySelector("title")?.textContent?.replace(/<!\[CDATA\[|\]\]>/g,"").trim() || "",
+          link:  item.querySelector("link")?.textContent?.trim()
+              || item.querySelector("guid")?.textContent?.trim()
+              || "#"
+        })).filter(h => h.title.length > 5);
+
+      } catch { continue; }
+    }
+    return [];
+  }
+
+  async function loadLoudwire() {
+    const headlines = await fetchLoudwire();
+
+    if (!headlines.length) {
+      inner.innerHTML = `<span style="color:#78716c;font-size:0.72rem;">Loudwire unavailable</span>`;
+      return;
+    }
+
+    const sep = `<span style="color:#44403c;margin:0 1.5em;">♪</span>`;
+    inner.innerHTML = headlines.map(h =>
+      `<a href="${h.link}" target="_blank" rel="noopener noreferrer" class="lw-headline"><span class="lw-label">[LOUDWIRE]</span>${h.title}</a>`
+    ).join(sep);
+
+    inner.style.animation = "none";
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const wrapWidth = document.getElementById("loudwire-ticker-wrap").clientWidth;
+        const textWidth = inner.scrollWidth;
+        if (textWidth > wrapWidth) {
+          const duration = Math.max(20, textWidth / 60);
+          inner.style.paddingLeft = wrapWidth + "px";
+          inner.style.animation = `banner-scroll ${duration}s linear infinite`;
+        }
+      });
+    });
+  }
+
+  loadLoudwire();
+  setInterval(loadLoudwire, 600000);
+})();
+</script>
+<script>
+// ─── GIPHY RANDOM GIF ─────────────────────────────────────────────────────
+(() => {
+  const API_KEY = "ezR8ii4dpi70iv0BKt4Y1yque9kpowro";
+  const box     = document.getElementById("giphy-box");
+  const img     = document.getElementById("giphy-img");
+  const title   = document.getElementById("giphy-title");
+  const loading = document.getElementById("giphy-loading");
+
+  async function loadGif() {
+    loading.style.display = "block";
+    img.style.display = "none";
+    try {
+      const res  = await fetch(
+        `https://api.giphy.com/v1/gifs/random?api_key=${API_KEY}&rating=r`,
+        { cache: "no-store" }
+      );
+      if (!res.ok) throw new Error(res.status);
+      const data = await res.json();
+      const gif  = data.data;
+
+      // Use downsized for faster load, fall back to original
+      const src = gif.images?.downsized_large?.url
+               || gif.images?.original?.url
+               || "";
+
+      if (!src) throw new Error("No image URL");
+
+      img.onload = () => {
+        loading.style.display = "none";
+        img.style.display = "block";
+      };
+      img.src = src;
+      title.textContent = gif.title || "";
+    } catch (e) {
+      loading.textContent = "GIF load failed";
+      console.warn("Giphy error:", e);
+    }
+  }
+
+  // Load on start, on click, and every 3 minutes
+  loadGif();
+  box.addEventListener("click", loadGif);
+  setInterval(loadGif, 180000);
+})();
+</script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
