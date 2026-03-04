@@ -377,33 +377,45 @@ body {
     <!-- GIF Box -->
 <div id="giphy-box"
      class="bg-gray-800 rounded-xl relative overflow-hidden"
-     style="min-height:375px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;"
-     title="Click for a new GIF">
+     style="height:375px;cursor:pointer;position:relative;border:2px solid #374151;border-radius:12px;overflow:hidden;"
+     title="Click for new content">
 
+  <!-- Loading spinner -->
   <div id="giphy-loading"
-       style="color:#6b7280;font-size:0.8rem;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
-    Loading GIF...
+       style="color:#6b7280;font-size:0.8rem;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;">
+    Loading...
   </div>
 
+  <!-- Image (used by both GIF and meme modes) -->
   <img id="giphy-img"
        src=""
-       alt="Random GIF"
-       style="width:100%;height:375px;object-fit:cover;display:none;border-radius:12px;">
+       alt="Random content"
+       style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:fill;display:none;border-radius:10px;">
 
-  <!-- overlay: title + click hint -->
-  <div style="position:absolute;bottom:0;left:0;right:0;
-              background:linear-gradient(transparent,rgba(0,0,0,0.75));
-              padding:10px 10px 6px;border-radius:0 0 12px 12px;">
-    <div id="giphy-title" style="font-size:0.7rem;color:#e5e7eb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></div>
-    <div style="font-size:0.6rem;color:#9ca3af;margin-top:2px;">🎲 click for new gif &nbsp;·&nbsp; auto-refreshes every 3 min</div>
+  <!-- Reddit meme link wrapper (wraps img when in meme mode) -->
+  <a id="meme-link" href="#" target="_blank" rel="noopener noreferrer"
+     style="display:none;width:100%;height:100%;position:absolute;top:0;left:0;z-index:1;"></a>
+
+  <!-- Title badge top-left -->
+  <div id="giphy-title" style="position:absolute;top:6px;left:8px;z-index:3;
+       max-width:75%;font-size:0.65rem;color:#e5e7eb;line-height:1.35;
+       word-break:break-word;white-space:normal;
+       background:rgba(0,0,0,0.55);border-radius:4px;padding:2px 6px;"></div>
+
+  <!-- Source badge (top-right) -->
+  <div id="content-source-badge" style="position:absolute;top:6px;right:8px;z-index:3;
+       font-size:0.6rem;font-weight:700;letter-spacing:0.07em;
+       background:rgba(0,0,0,0.55);border-radius:4px;padding:2px 6px;color:#ffffff99;">
   </div>
 
-  <!-- GIPHY attribution (required by their API terms) -->
-  <div style="position:absolute;top:6px;right:8px;">
-    <img src="https://media.giphy.com/media/3o7TKSjRrfIPjeiVyM/giphy.gif"
-         style="display:none;" alt="">
-    <span style="font-size:0.55rem;color:#ffffff99;letter-spacing:0.05em;">Powered by GIPHY</span>
-  </div>
+  <!-- Next button bottom-right -->
+  <button id="media-next-btn" title="Next"
+     style="position:absolute;bottom:8px;right:8px;z-index:4;
+            background:rgba(0,0,0,0.55);border:1px solid rgba(255,255,255,0.2);
+            color:#e5e7eb;border-radius:6px;padding:4px 10px;
+            font-size:0.75rem;cursor:pointer;">
+    🎲 next
+  </button>
 </div>  </div>
 
   <script defer src="https://www.livecoinwatch.com/static/lcw-widget.js"></script>
@@ -1185,65 +1197,154 @@ setInterval(fetchAllWeatherCards, 900000);
 })();
 </script>
 <script>
-// ─── GIPHY RANDOM GIF ─────────────────────────────────────────────────────
+// ─── RANDOM GIF (GIPHY) or MEME (r/memes) ────────────────────────────────
 (() => {
-  const API_KEY = "ezR8ii4dpi70iv0BKt4Y1yque9kpowro";
-  const box     = document.getElementById("giphy-box");
-  const img     = document.getElementById("giphy-img");
-  const title   = document.getElementById("giphy-title");
-  const loading = document.getElementById("giphy-loading");
+  const GIPHY_KEY = "ezR8ii4dpi70iv0BKt4Y1yque9kpowro";
+  const box       = document.getElementById("giphy-box");
+  const img       = document.getElementById("giphy-img");
+  const titleEl   = document.getElementById("giphy-title");
+  const loading   = document.getElementById("giphy-loading");
+  const badge     = document.getElementById("content-source-badge");
+  const memeLink  = document.getElementById("meme-link");
 
-  // Random search terms so we never hit the ad-prone /random endpoint
-  const tags = [
+  const GIF_TAGS = [
     "funny","weird","wtf","chaos","explosion","party","cat","dog",
     "rock music","hockey","fail","win","crazy","dance","fire","space",
     "fight","animal","nature","epic","gross","drunk","confusing"
   ];
 
+  // Reddit image extensions we can display directly
+  const IMG_EXTS = /\.(jpg|jpeg|png|gif|webp)(\?.*)?$/i;
+
+  // Probe image dimensions before showing — reject portrait/square
+  function isLandscape(src) {
+    return new Promise((resolve) => {
+      const probe = new Image();
+      probe.onload  = () => resolve(probe.naturalWidth > probe.naturalHeight);
+      probe.onerror = () => resolve(false);
+      probe.src = src;
+    });
+  }
+
+  function showImg(src, titleText, badgeText, linkHref) {
+    img.onload = () => {
+      loading.style.display = "none";
+      img.style.display     = "block";
+    };
+    img.onerror = () => {
+      loading.textContent = "Image failed to load";
+    };
+    img.src = src;
+    titleEl.textContent = titleText || "";
+    badge.textContent   = badgeText || "";
+
+    if (linkHref && linkHref !== "#") {
+      memeLink.href          = linkHref;
+      memeLink.style.display = "block";
+    } else {
+      memeLink.style.display = "none";
+    }
+  }
+
   async function loadGif() {
     loading.style.display = "block";
-    img.style.display = "none";
+    loading.textContent   = "Loading GIF...";
+    img.style.display     = "none";
+    memeLink.style.display = "none";
     try {
-      // Use /search with a random tag + random offset — avoids ad GIFs
-      const tag    = tags[Math.floor(Math.random() * tags.length)];
+      const tag    = GIF_TAGS[Math.floor(Math.random() * GIF_TAGS.length)];
       const offset = Math.floor(Math.random() * 100);
       const res    = await fetch(
-        `https://api.giphy.com/v1/gifs/search?api_key=${API_KEY}&q=${encodeURIComponent(tag)}&limit=1&offset=${offset}&rating=r`,
+        `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(tag)}&limit=1&offset=${offset}&rating=r`,
         { cache: "no-store" }
       );
       if (!res.ok) throw new Error(res.status);
       const data = await res.json();
       const gif  = data.data?.[0];
-
-      if (!gif) throw new Error("No GIF returned");
-
-      // Skip anything that looks like a sponsored/ad result
-      if (gif.is_sticker || gif.type !== "gif") {
-        return loadGif(); // retry
-      }
-
-      const src = gif.images?.downsized_large?.url
-               || gif.images?.original?.url
-               || "";
-
-      if (!src) throw new Error("No image URL");
-
-      img.onload = () => {
-        loading.style.display = "none";
-        img.style.display = "block";
-      };
-      img.src = src;
-      title.textContent = gif.title || "";
+      if (!gif || gif.is_sticker || gif.type !== "gif") return loadGif();
+      const src = gif.images?.downsized_large?.url || gif.images?.original?.url || "";
+      if (!src) throw new Error("No URL");
+      // Reject portrait GIFs
+      if (!(await isLandscape(src))) return loadGif();
+      showImg(src, gif.title, "GIPHY", "#");
     } catch (e) {
       loading.textContent = "GIF load failed";
       console.warn("Giphy error:", e);
     }
   }
 
-  // Load on start, on click, and every 3 minutes
-  loadGif();
-  box.addEventListener("click", loadGif);
-  setInterval(loadGif, 180000);
+  async function loadMeme() {
+    loading.style.display = "block";
+    loading.textContent   = "Loading meme...";
+    img.style.display     = "none";
+    memeLink.style.display = "none";
+
+    // Reddit JSON API — pick a random page of hot posts and grab one image post
+    const subreddits = ["memes", "me_irl", "dankmemes", "AdviceAnimals"];
+    const sub  = subreddits[Math.floor(Math.random() * subreddits.length)];
+    const after = ["", `&after=t3_${Math.random().toString(36).slice(2,8)}`][Math.floor(Math.random()*2)];
+
+    try {
+      const res = await fetch(
+        `https://www.reddit.com/r/${sub}/hot.json?limit=50${after}`,
+        { cache: "no-store", headers: { "Accept": "application/json" } }
+      );
+      if (!res.ok) throw new Error(`Reddit ${res.status}`);
+      const json = await res.json();
+      const posts = (json?.data?.children || [])
+        .map(c => c.data)
+        .filter(p =>
+          !p.is_video &&
+          !p.over_18 &&
+          p.url &&
+          IMG_EXTS.test(p.url)
+        );
+
+      if (!posts.length) throw new Error("No image posts found");
+
+      // Shuffle posts and find first landscape one (up to 10 tries)
+      const shuffled = posts.sort(() => Math.random() - 0.5);
+      let chosen = null;
+      for (const p of shuffled.slice(0, 10)) {
+        if (await isLandscape(p.url)) { chosen = p; break; }
+      }
+      if (!chosen) { console.warn("No landscape memes found, trying GIF"); return loadGif(); }
+      const src  = chosen.url;
+      const link = `https://reddit.com${chosen.permalink}`;
+      showImg(src, chosen.title, `r/${sub}`, link);
+    } catch (e) {
+      // If Reddit fails, fall back silently to a GIF
+      console.warn("Reddit meme error, falling back to GIF:", e);
+      loadGif();
+    }
+  }
+
+  function loadRandom() {
+    // 50/50 random choice each refresh
+    if (Math.random() < 0.5) {
+      loadGif();
+    } else {
+      loadMeme();
+    }
+  }
+
+  // Init
+  loadRandom();
+
+  // Next button
+  document.getElementById("media-next-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    loadRandom();
+  });
+
+  // Clicking the box itself (but not the meme link or next btn) also cycles
+  box.addEventListener("click", (e) => {
+    if (e.target === memeLink) return;
+    if (e.target.id === "media-next-btn") return;
+    loadRandom();
+  });
+
+  setInterval(loadRandom, 180000);
 })();
 </script>
 <script>
@@ -1267,6 +1368,7 @@ setInterval(fetchAllWeatherCards, 900000);
 </script>
 </body>
 </html>
+
 
 
 
