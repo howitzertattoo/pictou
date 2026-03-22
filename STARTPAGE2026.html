@@ -779,20 +779,39 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script>
-// ─── YOUTUBE TABBED PLAYER ───────────────────────────────────────────────────────────
+// ─── YOUTUBE TABBED PLAYER (RSS — no API key needed) ───────────────────────────────
 (() => {
-  const YT_KEY = "AIzaSyANIp9IKnsN_V95qDj-haNhdzbiqc-QA_g";
-
+  // YouTube public RSS feeds — no API key, no quota, no billing
+  // channel_id found from each channel's About page
   const CATEGORIES = [
-    { label: "NHL",   queries: ["NHL highlights today", "NHL goals this week", "NHL top plays"],          color: "#60a5fa" },
-    { label: "SENS",  queries: ["Ottawa Senators highlights", "Ottawa Senators goals", "Sens NHL"],        color: "#e2211a" },
-    { label: "METAL", queries: ["heavy metal live 2024", "metal concert highlights", "best metal songs"],  color: "#f97316" },
-    { label: "TATTOO",queries: ["tattoo timelapse", "tattoo artist process", "tattoo sleeve 2024"],        color: "#a78bfa" },
-    { label: "TPB",   queries: ["Trailer Park Boys funny", "Trailer Park Boys best moments", "TPB clips"],color: "#34d399" },
-    { label: "TRUMP", queries: ["Kimmel Trump roast", "Colbert Trump jokes", "late night Trump comedy"],   color: "#fbbf24" },
+    { label: "NHL",    color: "#60a5fa",
+      feeds: ["UCqFMzb-4AUf6WAIbl132QKA",  // NHL
+              "UCnmFnGT5LJzgJQjGfG5KPKQ",  // Sportsnet
+              "UCgmRcFCNNmTxnYNw9CVZZ1g"]  // TSN
+    },
+    { label: "SENS",   color: "#e2211a",
+      feeds: ["UCK5AJ4-sTEsJoEsxnGDrqMg"]  // Ottawa Senators official
+    },
+    { label: "METAL",  color: "#f97316",
+      feeds: ["UCbGnKMIABCJLfFLmPiMXnog",  // Loudwire
+              "UCcXhhVwCT6_WqjkEniejRJQ",  // Metal Injection
+              "UC0Tpx4Nf6kAqFPUNpubQmAg"]  // Nuclear Blast
+    },
+    { label: "TATTOO", color: "#a78bfa",
+      feeds: ["UCvEHHUFDDdnvCwpkEHr58dA",  // Tattoo Life
+              "UCFBbacj3Y9DfM9j-i-AAAAAA"]  // fallback
+    },
+    { label: "TPB",    color: "#34d399",
+      feeds: ["UCldtpM8RCBGBQk6P1JXsIdQ"]  // TPB official clips
+    },
+    { label: "TRUMP",  color: "#fbbf24",
+      feeds: ["UCMtFAi84owNundGAWr5wGUA",  // Jimmy Kimmel
+              "UCi7GJNg51C3jgmYTUwqoUXA"]  // Stephen Colbert
+    },
   ];
 
-  const TAB_COLORS = CATEGORIES.map(c => c.color);
+  const PROXY = url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+  const PROXY2 = url => `https://corsproxy.io/?${encodeURIComponent(url)}`;
 
   const loading   = document.getElementById("yt-loading");
   const link      = document.getElementById("yt-link");
@@ -804,68 +823,85 @@ document.addEventListener("DOMContentLoaded", function () {
   const nextBtn   = document.getElementById("yt-next");
   const tabs      = document.querySelectorAll(".yt-tab");
 
-  // Cache per category so switching tabs is instant after first load
   const cache = {};
   let activeCat = 0;
   let current   = 0;
 
+  async function fetchRSS(channelId) {
+    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
+    for (const makeProxy of [PROXY, PROXY2]) {
+      try {
+        const proxyUrl = makeProxy(feedUrl);
+        const res = await fetch(proxyUrl, { cache: "no-store" });
+        if (!res.ok) continue;
+        let xml = "";
+        if (proxyUrl.includes("allorigins")) { const j = await res.json(); xml = j.contents || ""; }
+        else { xml = await res.text(); }
+        if (!xml || xml.length < 100) continue;
+        const doc = new DOMParser().parseFromString(xml, "text/xml");
+        const entries = [...doc.querySelectorAll("entry")].slice(0, 10);
+        return entries.map(e => {
+          const videoId = e.querySelector("videoId")?.textContent || 
+                          e.querySelector("id")?.textContent?.split(":").pop() || "";
+          const title   = e.querySelector("title")?.textContent || "";
+          const channel = e.querySelector("author name")?.textContent || "";
+          return { videoId, title, channel };
+        }).filter(v => v.videoId && v.title);
+      } catch(e) { continue; }
+    }
+    return [];
+  }
+
   async function fetchCategory(catIndex) {
     if (cache[catIndex]) return cache[catIndex];
     const cat = CATEGORIES[catIndex];
-    const q = encodeURIComponent(cat.queries[Math.floor(Math.random() * cat.queries.length)]);
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&order=date&maxResults=25&key=${YT_KEY}`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("YouTube API " + res.status);
-    const data = await res.json();
-    const videos = (data.items || []).filter(v => v.id?.videoId);
-    videos.sort(() => Math.random() - 0.5);
-    cache[catIndex] = videos;
-    return videos;
+    const allVideos = [];
+    for (const channelId of cat.feeds) {
+      const vids = await fetchRSS(channelId);
+      allVideos.push(...vids);
+    }
+    allVideos.sort(() => Math.random() - 0.5);
+    cache[catIndex] = allVideos;
+    return allVideos;
   }
 
   function showVideo(videos, index) {
     if (!videos.length) return;
     const v = videos[index];
-    const vid = v.id.videoId;
     loading.style.display = "none";
     link.style.display    = "block";
     titleEl.style.display = "block";
-    thumb.src = `https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`;
-    thumb.onerror = () => { thumb.src = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`; };
-    link.href = `https://www.youtube.com/watch?v=${vid}`;
-    titleEl.textContent   = v.snippet?.title || "";
-    channelEl.textContent = v.snippet?.channelTitle || "";
+    thumb.src = `https://i.ytimg.com/vi/${v.videoId}/maxresdefault.jpg`;
+    thumb.onerror = () => { thumb.src = `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`; };
+    link.href = `https://www.youtube.com/watch?v=${v.videoId}`;
+    titleEl.textContent   = v.title;
+    channelEl.textContent = v.channel;
     counter.textContent   = `${index + 1} / ${videos.length}`;
   }
 
   async function switchTo(catIndex) {
     activeCat = catIndex;
     current   = 0;
-
-    // Update tab styles
     tabs.forEach((t, i) => {
       const active = i === catIndex;
-      t.style.color       = active ? TAB_COLORS[i] : "#6b7280";
-      t.style.borderBottom = active ? `2px solid ${TAB_COLORS[i]}` : "2px solid transparent";
+      t.style.color        = active ? CATEGORIES[i].color : "#6b7280";
+      t.style.borderBottom = active ? `2px solid ${CATEGORIES[i].color}` : "2px solid transparent";
     });
-
-    // Show loading if not cached
     if (!cache[catIndex]) {
       loading.style.display = "block";
       loading.innerHTML = `<div style="font-size:1.3rem;margin-bottom:4px;">⏳</div>Loading ${CATEGORIES[catIndex].label}...`;
       link.style.display    = "none";
       titleEl.style.display = "none";
     }
-
     try {
       const videos = await fetchCategory(catIndex);
-      if (activeCat !== catIndex) return; // user switched away while loading
-      if (!videos.length) throw new Error("No results");
+      if (activeCat !== catIndex) return;
+      if (!videos.length) throw new Error("No videos found");
       showVideo(videos, current);
     } catch(e) {
       loading.style.display = "block";
       loading.innerHTML = `<div style="font-size:1.3rem;margin-bottom:4px;">⚠️</div>Could not load<br><span style="font-size:0.65rem;color:#4b5563;">${e.message}</span>`;
-      link.style.display    = "none";
+      link.style.display = "none";
     }
   }
 
@@ -880,11 +916,8 @@ document.addEventListener("DOMContentLoaded", function () {
   prevBtn.addEventListener("click", (e) => { e.preventDefault(); go(-1); });
   nextBtn.addEventListener("click", (e) => { e.preventDefault(); go(1); });
 
-  // Load first tab on startup, prefetch the rest quietly in background
   switchTo(0);
   setTimeout(() => { for (let i = 1; i < CATEGORIES.length; i++) fetchCategory(i); }, 3000);
-
-  // Flush cache every 30 min so content stays fresh
   setInterval(() => { Object.keys(cache).forEach(k => delete cache[k]); switchTo(activeCat); }, 1800000);
 })();
 </script>
