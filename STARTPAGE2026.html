@@ -657,7 +657,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ).join(sep);
     inner.style.animation = "none";
     requestAnimationFrame(() => { requestAnimationFrame(() => {
-      const duration = Math.max(30, inner.scrollWidth / 80);
+      const duration = Math.max(30, inner.scrollWidth / 60);
       inner.style.animation = `banner-scroll ${duration}s linear infinite`;
     }); });
   }
@@ -780,7 +780,7 @@ document.addEventListener("DOMContentLoaded", function () {
 <script>
 // ─── YOUTUBE TABBED PLAYER ───────────────────────────────────────────────────────────
 (() => {
-  const YT_KEY = "AIzaSyDbGtATqsSF9-mN12iiQXo8LDSCxpMkgQg";
+  const YT_KEY = "AIzaSyANIp9IKnsN_V95qDj-haNhdzbiqc-QA_g";
 
   const CATEGORIES = [
     { label: "NHL",   queries: ["NHL highlights today", "NHL goals this week", "NHL top plays"],          color: "#60a5fa" },
