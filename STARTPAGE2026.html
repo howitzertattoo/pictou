@@ -779,41 +779,18 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 <script>
-// ─── YOUTUBE TABBED PLAYER (RSS — no API key needed) ───────────────────────────────
+// ─── YOUTUBE TABBED PLAYER (API) ─────────────────────────────────────────
 (() => {
-  // YouTube public RSS feeds — no API key, no quota, no billing
-  // channel_id found from each channel's About page
-  const CATEGORIES = [
-    { label: "NHL",    color: "#60a5fa",
-      feeds: ["UCqFMzb-4AUf6WAIbl132QKA",  // NHL official
-              "UCnmFnGT5LJzgJQjGfG5KPKQ",  // Sportsnet
-              "UC6M9gSWrJBnmJHmKR-hS70Q"]  // TSN
-    },
-    { label: "SENS",   color: "#e2211a",
-      feeds: ["UCK5AJ4-sTEsJoEsxnGDrqMg",  // Ottawa Senators official
-              "UCqFMzb-4AUf6WAIbl132QKA"]  // NHL (backup)
-    },
-    { label: "METAL",  color: "#f97316",
-      feeds: ["UCbGnKMIABCJLfFLmPiMXnog",  // Loudwire
-              "UCcXhhVwCT6_WqjkEniejRJQ",  // Metal Injection
-              "UCGgIBbFZtEKTJPbEFhMl2kA"]  // Nuclear Blast
-    },
-    { label: "TATTOO", color: "#a78bfa",
-      feeds: ["UCvEHHUFDDdnvCwpkEHr58dA",  // Tattoo Life
-              "UCr6JcgG9eskEzL-6_iC5Ygw"]  // Tattoo Artists
-    },
-    { label: "TPB",    color: "#34d399",
-      feeds: ["UCldtpM8RCBGBQk6P1JXsIdQ",  // TPB clips
-              "UCVpFqSRnGpBT25GFmqNFhgA"]  // TPB fan channel
-    },
-    { label: "TRUMP",  color: "#fbbf24",
-      feeds: ["UCa6vGFO9ty8v5KZJXQxdhaw",  // Jimmy Kimmel Live (verified)
-              "UCMtFAi84ehTSYSE9XoHefig"]  // Stephen Colbert (verified)
-    },
-  ];
+  const YT_KEY = "AIzaSyANIp9IKnsN_V95qDj-haNhdzbiqc-QA_g";
 
-  const PROXY = url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-  const PROXY2 = url => `https://corsproxy.io/?${encodeURIComponent(url)}`;
+  const CATEGORIES = [
+    { label: "NHL",    color: "#60a5fa", queries: ["NHL highlights", "NHL goals", "NHL top plays"] },
+    { label: "SENS",   color: "#e2211a", queries: ["Ottawa Senators highlights", "Ottawa Senators goals"] },
+    { label: "METAL",  color: "#f97316", queries: ["heavy metal live", "metal concert", "best metal"] },
+    { label: "TATTOO", color: "#a78bfa", queries: ["tattoo timelapse", "tattoo artist process", "tattoo sleeve"] },
+    { label: "TPB",    color: "#34d399", queries: ["Trailer Park Boys funny", "Trailer Park Boys best moments"] },
+    { label: "TRUMP",  color: "#fbbf24", queries: ["Kimmel Trump", "Colbert Trump jokes", "late night Trump comedy"] },
+  ];
 
   const loading   = document.getElementById("yt-loading");
   const link      = document.getElementById("yt-link");
@@ -829,54 +806,32 @@ document.addEventListener("DOMContentLoaded", function () {
   let activeCat = 0;
   let current   = 0;
 
-  async function fetchRSS(channelId) {
-    const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
-    for (const makeProxy of [PROXY, PROXY2]) {
-      try {
-        const proxyUrl = makeProxy(feedUrl);
-        const res = await fetch(proxyUrl, { cache: "no-store" });
-        if (!res.ok) continue;
-        let xml = "";
-        if (proxyUrl.includes("allorigins")) { const j = await res.json(); xml = j.contents || ""; }
-        else { xml = await res.text(); }
-        if (!xml || xml.length < 100) continue;
-        const doc = new DOMParser().parseFromString(xml, "text/xml");
-        const entries = [...doc.querySelectorAll("entry")].slice(0, 10);
-        return entries.map(e => {
-          const videoId = e.querySelector("videoId")?.textContent || 
-                          e.querySelector("id")?.textContent?.split(":").pop() || "";
-          const title   = e.querySelector("title")?.textContent || "";
-          const channel = e.querySelector("author name")?.textContent || "";
-          return { videoId, title, channel };
-        }).filter(v => v.videoId && v.title);
-      } catch(e) { continue; }
-    }
-    return [];
-  }
-
   async function fetchCategory(catIndex) {
     if (cache[catIndex]) return cache[catIndex];
     const cat = CATEGORIES[catIndex];
-    // Fetch all channels in parallel, don't let one failure kill the rest
-    const results = await Promise.allSettled(cat.feeds.map(id => fetchRSS(id)));
-    const allVideos = [];
-    results.forEach(r => { if (r.status === "fulfilled") allVideos.push(...r.value); });
-    allVideos.sort(() => Math.random() - 0.5);
-    cache[catIndex] = allVideos;
-    return allVideos;
+    const q = encodeURIComponent(cat.queries[Math.floor(Math.random() * cat.queries.length)]);
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&order=date&maxResults=25&key=${YT_KEY}`;
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("YouTube API " + res.status);
+    const data = await res.json();
+    const videos = (data.items || []).filter(v => v.id?.videoId);
+    videos.sort(() => Math.random() - 0.5);
+    cache[catIndex] = videos;
+    return videos;
   }
 
   function showVideo(videos, index) {
     if (!videos.length) return;
     const v = videos[index];
+    const vid = v.id.videoId;
     loading.style.display = "none";
     link.style.display    = "block";
     titleEl.style.display = "block";
-    thumb.src = `https://i.ytimg.com/vi/${v.videoId}/maxresdefault.jpg`;
-    thumb.onerror = () => { thumb.src = `https://i.ytimg.com/vi/${v.videoId}/hqdefault.jpg`; };
-    link.href = `https://www.youtube.com/watch?v=${v.videoId}`;
-    titleEl.textContent   = v.title;
-    channelEl.textContent = v.channel;
+    thumb.src = `https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`;
+    thumb.onerror = () => { thumb.src = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`; };
+    link.href = `https://www.youtube.com/watch?v=${vid}`;
+    titleEl.textContent   = v.snippet?.title || "";
+    channelEl.textContent = v.snippet?.channelTitle || "";
     counter.textContent   = `${index + 1} / ${videos.length}`;
   }
 
@@ -897,7 +852,7 @@ document.addEventListener("DOMContentLoaded", function () {
     try {
       const videos = await fetchCategory(catIndex);
       if (activeCat !== catIndex) return;
-      if (!videos.length) throw new Error("No videos found");
+      if (!videos.length) throw new Error("No results");
       showVideo(videos, current);
     } catch(e) {
       loading.style.display = "block";
@@ -918,15 +873,8 @@ document.addEventListener("DOMContentLoaded", function () {
   nextBtn.addEventListener("click", (e) => { e.preventDefault(); go(1); });
 
   switchTo(0);
-  // Prefetch other tabs silently — just fill cache, don't touch display
-  setTimeout(() => { for (let i = 1; i < CATEGORIES.length; i++) fetchCategory(i); }, 5000);
-  // Refresh cache every 30 min, only re-render active tab
-  setInterval(() => {
-    Object.keys(cache).forEach(k => delete cache[k]);
-    fetchCategory(activeCat).then(videos => {
-      if (videos.length) showVideo(videos, 0);
-    }).catch(() => {});
-  }, 1800000);
+  setTimeout(() => { for (let i = 1; i < CATEGORIES.length; i++) fetchCategory(i); }, 3000);
+  setInterval(() => { Object.keys(cache).forEach(k => delete cache[k]); switchTo(activeCat); }, 1800000);
 })();
 </script>
 
