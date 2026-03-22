@@ -857,11 +857,10 @@ document.addEventListener("DOMContentLoaded", function () {
   async function fetchCategory(catIndex) {
     if (cache[catIndex]) return cache[catIndex];
     const cat = CATEGORIES[catIndex];
+    // Fetch all channels in parallel, don't let one failure kill the rest
+    const results = await Promise.allSettled(cat.feeds.map(id => fetchRSS(id)));
     const allVideos = [];
-    for (const channelId of cat.feeds) {
-      const vids = await fetchRSS(channelId);
-      allVideos.push(...vids);
-    }
+    results.forEach(r => { if (r.status === "fulfilled") allVideos.push(...r.value); });
     allVideos.sort(() => Math.random() - 0.5);
     cache[catIndex] = allVideos;
     return allVideos;
@@ -919,8 +918,15 @@ document.addEventListener("DOMContentLoaded", function () {
   nextBtn.addEventListener("click", (e) => { e.preventDefault(); go(1); });
 
   switchTo(0);
-  setTimeout(() => { for (let i = 1; i < CATEGORIES.length; i++) fetchCategory(i); }, 3000);
-  setInterval(() => { Object.keys(cache).forEach(k => delete cache[k]); switchTo(activeCat); }, 1800000);
+  // Prefetch other tabs silently — just fill cache, don't touch display
+  setTimeout(() => { for (let i = 1; i < CATEGORIES.length; i++) fetchCategory(i); }, 5000);
+  // Refresh cache every 30 min, only re-render active tab
+  setInterval(() => {
+    Object.keys(cache).forEach(k => delete cache[k]);
+    fetchCategory(activeCat).then(videos => {
+      if (videos.length) showVideo(videos, 0);
+    }).catch(() => {});
+  }, 1800000);
 })();
 </script>
 
