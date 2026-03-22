@@ -785,28 +785,30 @@ document.addEventListener("DOMContentLoaded", function () {
   // channel_id found from each channel's About page
   const CATEGORIES = [
     { label: "NHL",    color: "#60a5fa",
-      feeds: ["UCqFMzb-4AUf6WAIbl132QKA",  // NHL
+      feeds: ["UCqFMzb-4AUf6WAIbl132QKA",  // NHL official
               "UCnmFnGT5LJzgJQjGfG5KPKQ",  // Sportsnet
-              "UCgmRcFCNNmTxnYNw9CVZZ1g"]  // TSN
+              "UC6M9gSWrJBnmJHmKR-hS70Q"]  // TSN
     },
     { label: "SENS",   color: "#e2211a",
-      feeds: ["UCK5AJ4-sTEsJoEsxnGDrqMg"]  // Ottawa Senators official
+      feeds: ["UCK5AJ4-sTEsJoEsxnGDrqMg",  // Ottawa Senators official
+              "UCqFMzb-4AUf6WAIbl132QKA"]  // NHL (backup)
     },
     { label: "METAL",  color: "#f97316",
       feeds: ["UCbGnKMIABCJLfFLmPiMXnog",  // Loudwire
               "UCcXhhVwCT6_WqjkEniejRJQ",  // Metal Injection
-              "UC0Tpx4Nf6kAqFPUNpubQmAg"]  // Nuclear Blast
+              "UCGgIBbFZtEKTJPbEFhMl2kA"]  // Nuclear Blast
     },
     { label: "TATTOO", color: "#a78bfa",
       feeds: ["UCvEHHUFDDdnvCwpkEHr58dA",  // Tattoo Life
-              "UCFBbacj3Y9DfM9j-i-AAAAAA"]  // fallback
+              "UCr6JcgG9eskEzL-6_iC5Ygw"]  // Tattoo Artists
     },
     { label: "TPB",    color: "#34d399",
-      feeds: ["UCldtpM8RCBGBQk6P1JXsIdQ"]  // TPB official clips
+      feeds: ["UCldtpM8RCBGBQk6P1JXsIdQ",  // TPB clips
+              "UCVpFqSRnGpBT25GFmqNFhgA"]  // TPB fan channel
     },
     { label: "TRUMP",  color: "#fbbf24",
-      feeds: ["UCMtFAi84owNundGAWr5wGUA",  // Jimmy Kimmel
-              "UCi7GJNg51C3jgmYTUwqoUXA"]  // Stephen Colbert
+      feeds: ["UCa6vGFO9ty8v5KZJXQxdhaw",  // Jimmy Kimmel Live (verified)
+              "UCMtFAi84ehTSYSE9XoHefig"]  // Stephen Colbert (verified)
     },
   ];
 
