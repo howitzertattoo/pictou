@@ -140,50 +140,11 @@ body { background-color:#121212;color:#e0e0e0;font-family:'Segoe UI',Tahoma,Gene
       </div>
     </div>
 
-    <!-- YouTube Tabbed Box -->
-    <div id="yt-box" style="height:415px;position:relative;border:2px solid #374151;border-radius:12px;overflow:hidden;background:#0f0f0f;display:flex;flex-direction:column;">
-      <!-- Tab bar -->
-      <div id="yt-tabs" style="display:flex;background:#111827;border-bottom:1px solid #1f2937;flex-shrink:0;overflow-x:auto;scrollbar-width:none;">
-        <button class="yt-tab active" data-cat="0" style="flex-shrink:0;padding:5px 9px;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer;background:transparent;color:#60a5fa;border-bottom:2px solid #60a5fa;">NHL</button>
-        <button class="yt-tab" data-cat="1" style="flex-shrink:0;padding:5px 9px;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer;background:transparent;color:#6b7280;border-bottom:2px solid transparent;">SENS</button>
-        <button class="yt-tab" data-cat="2" style="flex-shrink:0;padding:5px 9px;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer;background:transparent;color:#6b7280;border-bottom:2px solid transparent;">METAL</button>
-        <button class="yt-tab" data-cat="3" style="flex-shrink:0;padding:5px 9px;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer;background:transparent;color:#6b7280;border-bottom:2px solid transparent;">TATTOO</button>
-        <button class="yt-tab" data-cat="4" style="flex-shrink:0;padding:5px 9px;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer;background:transparent;color:#6b7280;border-bottom:2px solid transparent;">TPB</button>
-        <button class="yt-tab" data-cat="5" style="flex-shrink:0;padding:5px 9px;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer;background:transparent;color:#6b7280;border-bottom:2px solid transparent;">COVFEVE</button>
-      </div>
-      <!-- Content area -->
-      <div style="position:relative;flex:1;min-height:0;">
-        <!-- Loading -->
-        <div id="yt-loading" style="color:#6b7280;font-size:0.8rem;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);z-index:2;text-align:center;">
-          <div style="font-size:1.5rem;margin-bottom:6px;">🏒</div>Loading...
-        </div>
-        <!-- Thumbnail -->
-        <a id="yt-link" href="#" target="_blank" rel="noopener noreferrer"
-           style="display:none;position:absolute;top:0;left:0;width:100%;height:calc(100% - 32px);z-index:2;">
-          <img id="yt-thumb" src="" alt="" style="width:100%;height:100%;object-fit:cover;">
-          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-60%);
-                      width:52px;height:52px;background:rgba(255,0,0,0.85);border-radius:50%;
-                      display:flex;align-items:center;justify-content:center;font-size:1.3rem;
-                      box-shadow:0 2px 12px rgba(0,0,0,0.6);">&#9654;</div>
-          <div id="yt-channel" style="position:absolute;top:8px;right:8px;z-index:3;
-               font-size:0.6rem;font-weight:700;background:rgba(255,0,0,0.8);
-               border-radius:4px;padding:2px 7px;color:#fff;letter-spacing:0.06em;">YouTube</div>
-        </a>
-        <!-- Title -->
-        <div id="yt-title" style="display:none;position:absolute;bottom:32px;left:0;right:0;z-index:3;
-             font-size:0.65rem;color:#f1f5f9;line-height:1.4;
-             background:linear-gradient(transparent,rgba(0,0,0,0.92));
-             padding:20px 10px 5px 10px;pointer-events:none;"></div>
-        <!-- Controls -->
-        <div style="position:absolute;bottom:0;left:0;right:0;height:32px;background:rgba(0,0,0,0.75);
-             display:flex;align-items:center;justify-content:space-between;padding:0 8px;z-index:4;">
-          <span id="yt-counter" style="font-size:0.62rem;color:#6b7280;"></span>
-          <div style="display:flex;gap:6px;">
-            <button id="yt-prev" style="background:rgba(255,255,255,0.1);border:none;color:#e5e7eb;border-radius:4px;padding:2px 8px;font-size:0.75rem;cursor:pointer;">◄</button>
-            <button id="yt-next" style="background:rgba(255,255,255,0.1);border:none;color:#e5e7eb;border-radius:4px;padding:2px 8px;font-size:0.75rem;cursor:pointer;">►</button>
-          </div>
-        </div>
-      </div>
+    <!-- Logo Box -->
+    <div style="height:415px;position:relative;border:2px solid #374151;border-radius:12px;overflow:hidden;background:#0f0f0f;display:flex;align-items:center;justify-content:center;">
+      <img src="https://raw.githubusercontent.com/howitzertattoo/pictou/main/assets/logo.png"
+           alt="Howitzer Tattoo"
+           style="max-width:90%;max-height:90%;object-fit:contain;">
     </div>
   </div>
 
@@ -778,105 +739,6 @@ document.addEventListener("DOMContentLoaded", function () {
 })();
 </script>
 
-<script>
-// ─── YOUTUBE TABBED PLAYER (API) ─────────────────────────────────────────
-(() => {
-  const YT_KEY = "AIzaSyC7BARk4EAVIp-s4l0D8SmCAsZPIbhsaJ0";
-
-  const CATEGORIES = [
-    { label: "NHL",    color: "#60a5fa", queries: ["NHL highlights", "NHL goals", "NHL top plays"] },
-    { label: "SENS",   color: "#e2211a", queries: ["Ottawa Senators highlights", "Ottawa Senators goals"] },
-    { label: "METAL",  color: "#f97316", queries: ["heavy metal music live", "thrash metal concert", "death metal band performance"] },
-    { label: "TATTOO", color: "#a78bfa", queries: ["tattoo timelapse", "tattoo artist process", "tattoo sleeve"] },
-    { label: "TPB",    color: "#34d399", queries: ["Trailer Park Boys funny", "Trailer Park Boys best moments"] },
-    { label: "COVFEVE",  color: "#fbbf24", queries: ["Kimmel Trump", "Colbert Trump jokes", "late night Trump comedy"] },
-  ];
-
-  const loading   = document.getElementById("yt-loading");
-  const link      = document.getElementById("yt-link");
-  const thumb     = document.getElementById("yt-thumb");
-  const titleEl   = document.getElementById("yt-title");
-  const channelEl = document.getElementById("yt-channel");
-  const counter   = document.getElementById("yt-counter");
-  const prevBtn   = document.getElementById("yt-prev");
-  const nextBtn   = document.getElementById("yt-next");
-  const tabs      = document.querySelectorAll(".yt-tab");
-
-  const cache = {};
-  let activeCat = 0;
-  let current   = 0;
-
-  async function fetchCategory(catIndex) {
-    if (cache[catIndex]) return cache[catIndex];
-    const cat = CATEGORIES[catIndex];
-    const q = encodeURIComponent(cat.queries[Math.floor(Math.random() * cat.queries.length)]);
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&q=${q}&type=video&order=date&maxResults=25&key=${YT_KEY}`;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) throw new Error("YouTube API " + res.status);
-    const data = await res.json();
-    const videos = (data.items || []).filter(v => v.id?.videoId);
-    videos.sort(() => Math.random() - 0.5);
-    cache[catIndex] = videos;
-    return videos;
-  }
-
-  function showVideo(videos, index) {
-    if (!videos.length) return;
-    const v = videos[index];
-    const vid = v.id.videoId;
-    loading.style.display = "none";
-    link.style.display    = "block";
-    titleEl.style.display = "block";
-    thumb.src = `https://i.ytimg.com/vi/${vid}/maxresdefault.jpg`;
-    thumb.onerror = () => { thumb.src = `https://i.ytimg.com/vi/${vid}/hqdefault.jpg`; };
-    link.href = `https://www.youtube.com/watch?v=${vid}`;
-    titleEl.textContent   = v.snippet?.title || "";
-    channelEl.textContent = v.snippet?.channelTitle || "";
-    counter.textContent   = `${index + 1} / ${videos.length}`;
-  }
-
-  async function switchTo(catIndex) {
-    activeCat = catIndex;
-    current   = 0;
-    tabs.forEach((t, i) => {
-      const active = i === catIndex;
-      t.style.color        = active ? CATEGORIES[i].color : "#6b7280";
-      t.style.borderBottom = active ? `2px solid ${CATEGORIES[i].color}` : "2px solid transparent";
-    });
-    if (!cache[catIndex]) {
-      loading.style.display = "block";
-      loading.innerHTML = `<div style="font-size:1.3rem;margin-bottom:4px;">⏳</div>Loading ${CATEGORIES[catIndex].label}...`;
-      link.style.display    = "none";
-      titleEl.style.display = "none";
-    }
-    try {
-      const videos = await fetchCategory(catIndex);
-      if (activeCat !== catIndex) return;
-      if (!videos.length) throw new Error("No results");
-      showVideo(videos, current);
-    } catch(e) {
-      loading.style.display = "block";
-      loading.innerHTML = `<div style="font-size:1.3rem;margin-bottom:4px;">⚠️</div>Could not load<br><span style="font-size:0.65rem;color:#4b5563;">${e.message}</span>`;
-      link.style.display = "none";
-    }
-  }
-
-  function go(dir) {
-    const videos = cache[activeCat];
-    if (!videos?.length) return;
-    current = (current + dir + videos.length) % videos.length;
-    showVideo(videos, current);
-  }
-
-  tabs.forEach((t, i) => t.addEventListener("click", () => switchTo(i)));
-  prevBtn.addEventListener("click", (e) => { e.preventDefault(); go(-1); });
-  nextBtn.addEventListener("click", (e) => { e.preventDefault(); go(1); });
-
-  switchTo(0);
-  setTimeout(() => { for (let i = 1; i < CATEGORIES.length; i++) fetchCategory(i); }, 3000);
-  setInterval(() => { Object.keys(cache).forEach(k => delete cache[k]); switchTo(activeCat); }, 1800000);
-})();
-</script>
 
 <script>
 // BURNSAFE STATUS + UPTIME TIMER — both properly wrapped in one script tag
