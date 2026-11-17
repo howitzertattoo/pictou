@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>HOWITZER DESK BOARD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;700;900&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body {
+    width:100%; height:100%; background:#000; color:#fff;
+    overflow:hidden; font-family:'Nunito','Arial Rounded MT Bold','Segoe UI',Roboto,Arial,sans-serif;
+    cursor:none;
+  }
+  #board { display:flex; flex-direction:column; width:100%; height:100%; position:relative; }
+
+  /* ================= PAGE GLOW (weather mood, top center, oversized) ================= */
+  #pageglow {
+    position:fixed; inset:0; pointer-events:none; z-index:1;
+    background:radial-gradient(ellipse 120% 90% at 50% 0%, var(--glow-color, rgba(255,200,80,.28)) 0%, transparent 70%);
+    transition:background 2s ease;
+  }
+
+  /* ================= TICKERS ================= */
+  .ticker {
+    overflow:hidden; white-space:nowrap; flex:0 0 6vh;
+    border-top:1px solid #0d0d0d; border-bottom:1px solid #0d0d0d;
+    display:flex; align-items:center; position:relative; z-index:2;
+  }
+  .track {
+    display:inline-flex; align-items:center;
+    animation:marq 150s linear infinite;
+    font-style:italic; font-weight:700;
+    font-size:3.2vh; color:#f0f0f0; letter-spacing:.5px;
+  }
+  .item { padding:0 2.5vh; }
+  .sep  { color:#ff4500; padding:0 1vh; }
+  @keyframes marq { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* ================= CLOCK ================= */
+  #clockzone { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; z-index:2; }
+  #clockrow { display:flex; align-items:baseline; }
+  #ampm {
+    font-weight:900; font-size:4.5vh; letter-spacing:1px;
+    align-self:center; margin:0 2.5vh 6vh 0; color:#fff;
+  }
+  #clocktext {
+    font-weight:900;
+    font-size:24vh;
+    line-height:1;
+    letter-spacing:-0.5vh;
+    text-shadow:0 0 1.5vh rgba(255,255,255,.25);
+    font-variant-numeric:tabular-nums;
+  }
+  #clocktext .colon { animation:blink 1s steps(1) infinite; padding:0 .5vh; }
+  #clocktext .secs  { font-size:8vh; color:#ddd; vertical-align:baseline; }
+  @keyframes blink { 50% { opacity:.25; } }
+  #date {
+    font-weight:300;
+    font-size:2.6vh;
+    letter-spacing:6px;
+    color:#b9c2cf;
+    margin-top:.8vh;
+    text-transform:uppercase;
+  }
+
+  /* ================= BOTTOM PANELS ================= */
+  #bottom {
+    flex:0 0 24vh; display:flex; justify-content:space-between;
+    align-items:flex-end; padding:0 2vw 1.5vh 2vw; gap:1.5vw; position:relative; z-index:2;
+  }
+  .weather {
+    background:#141414; border-radius:1.2vh; padding:1.6vh 1.6vw;
+    min-width:28vw; max-width:34vw;
+  }
+  .wloc { font-size:1.5vh; letter-spacing:2px; color:#cfcfcf; margin-bottom:1vh; font-weight:700; }
+  .wrow { display:flex; align-items:center; gap:1.2vw; }
+  .wicon { font-size:5vh; line-height:1; }
+  .wtemp { font-size:7.5vh; font-weight:900; line-height:.95; }
+  .wcond { font-size:1.7vh; color:#c9c9c9; margin-top:.4vh; }
+  .wside { font-size:1.6vh; color:#dcdcdc; line-height:1.5; margin-left:auto; text-align:right; }
+  .wside b { font-weight:800; }
+  .wmeta { display:flex; gap:1.6vw; margin-top:1vh; font-size:1.4vh; color:#9a9a9a;
+           border-top:1px solid #242424; padding-top:.8vh; }
+  .wmeta b { color:#e8e8e8; }
+
+  .forecast { display:flex; gap:.5vw; }
+  .day { background:#15181f; border-radius:1vh; padding:1.4vh 1.2vw; text-align:center; min-width:7.2vw; }
+  .dname { font-size:1.5vh; letter-spacing:2px; color:#c9c9c9; font-weight:700; }
+  .dicon { font-size:3.2vh; margin:.7vh 0; }
+  .dhi { font-size:2.2vh; font-weight:800; }
+  .dlo { font-size:1.5vh; color:#8fa0b5; }
+
+  .fallback { color:#666; }
+</style>
+</head>
+<body>
+<div id="board">
+
+  <!-- WEATHER MOOD GLOW (whole page, top center, oversized) -->
+  <div id="pageglow"></div>
+
+  <!-- TOP TICKER : ESPN NHL -->
+  <div class="ticker"><div class="track" id="topTrack"><span class="item fallback">Loading ESPN NHL headlines…</span></div></div>
+
+  <!-- CLOCK -->
+  <div id="clockzone">
+    <div id="clockrow">
+      <div id="ampm">AM</div>
+      <div id="clocktext">10<span class="colon">:</span>08<span class="secs">30</span></div>
+    </div>
+    <div id="date">TUESDAY, NOVEMBER 17, 2026</div>
+  </div>
+
+  <!-- WEATHER + FORECAST -->
+  <div id="bottom">
+    <div class="weather">
+      <div class="wloc">PICTOU, NOVA SCOTIA</div>
+      <div class="wrow">
+        <div class="wicon" id="wIcon">☁️</div>
+        <div>
+          <div class="wtemp"><span id="wTemp">--</span>°C</div>
+          <div class="wcond" id="wCond">Loading weather…</div>
+        </div>
+        <div class="wside">
+          Feels like <b id="wFeels">--°C</b><br>
+          Wind <b id="wWind">-- km/h</b>
+        </div>
+      </div>
+      <div class="wmeta">
+        <span>Humidity <b id="wHum">--%</b></span>
+        <span>Precip <b id="wPrecip">--%</b></span>
+        <span>Rise <b id="wRise">--</b></span>
+        <span>Set <b id="wSet">--</b></span>
+      </div>
+    </div>
+    <div class="forecast" id="forecast"></div>
+  </div>
+
+  <!-- BOTTOM TICKER : CANADIAN HEADLINES -->
+  <div class="ticker"><div class="track" id="botTrack"><span class="item fallback">Loading Canadian headlines…</span></div></div>
+
+</div>
+
+<script>
+"use strict";
+
+/* =============== CLOCK + DATE =============== */
+function pad(n){ return n<10 ? "0"+n : ""+n; }
+var DAYS=["SUNDAY","MONDAY","TUESDAY","WEDNESDAY","THURSDAY","FRIDAY","SATURDAY"];
+var MONTHS=["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+function tickClock(){
+  var n = new Date();
+  var h = n.getHours();
+  document.getElementById("ampm").textContent = h>=12 ? "PM" : "AM";
+  h = h%12; if (h===0) h=12;
+  document.getElementById("clocktext").innerHTML =
+    h +
+    '<span class="colon">:</span>' + pad(n.getMinutes()) +
+    '<span class="secs">' + pad(n.getSeconds()) + '</span>';
+  document.getElementById("date").textContent =
+    DAYS[n.getDay()] + ", " + MONTHS[n.getMonth()] + " " + n.getDate() + ", " + n.getFullYear();
+}
+tickClock();
+setInterval(tickClock, 250);
+
+/* =============== TICKERS =============== */
+function esc(s){ var d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+function fillTicker(trackId, items, emptyMsg){
+  var track = document.getElementById(trackId);
+  if (!items || !items.length){
+    track.innerHTML = '<span class="item fallback">'+emptyMsg+'</span>';
+    return;
+  }
+  var html = "";
+  items.forEach(function(t){
+    html += '<span class="item">'+esc(t)+'</span><span class="sep">&#9679;</span>';
+  });
+  track.innerHTML = html + html;
+}
+
+/* --- ESPN NHL (JSON API, browser friendly) --- */
+async function loadESPN(){
+  try {
+    var r = await fetch("https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/news?limit=30");
+    var d = await r.json();
+    var items = (d.articles||[]).map(function(a){ return a.headline; });
+    fillTicker("topTrack", items, "No NHL headlines right now");
+  } catch(e){
+    fillTicker("topTrack", null, "ESPN NHL headlines unavailable — retrying…");
+  }
+}
+
+/* --- CANADIAN HEADLINES (multi-source fallback chain) --- */
+var CBC_RSS    = "https://www.cbc.ca/webfeed/rss/rss-canada";
+var GLOBAL_RSS = "https://globalnews.ca/canada/feed/";
+
+function parseRssXml(txt){
+  var doc = new DOMParser().parseFromString(txt, "text/xml");
+  var out = [];
+  doc.querySelectorAll("item > title").forEach(function(n){
+    var t = (n.textContent||"").trim();
+    if (t) out.push(t);
+  });
+  return out;
+}
+async function tryRss2Json(rssUrl){
+  var r = await fetch("https://api.rss2json.com/v1/api.json?count=30&rss_url=" + encodeURIComponent(rssUrl));
+  var d = await r.json();
+  if (d.status !== "ok" || !d.items || !d.items.length) throw new Error("rss2json empty");
+  return d.items.map(function(it){ return it.title; });
+}
+async function tryAllOrigins(rssUrl){
+  var r = await fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(rssUrl));
+  return parseRssXml(await r.text());
+}
+async function tryCorsProxy(rssUrl){
+  var r = await fetch("https://corsproxy.io/?" + encodeURIComponent(rssUrl));
+  return parseRssXml(await r.text());
+}
+async function loadCanadian(){
+  var sources = [
+    { rss:CBC_RSS,    fetchers:[tryRss2Json, tryAllOrigins, tryCorsProxy] },
+    { rss:GLOBAL_RSS, fetchers:[tryRss2Json, tryAllOrigins] }
+  ];
+  for (var s=0; s<sources.length; s++){
+    for (var f=0; f<sources[s].fetchers.length; f++){
+      try {
+        var items = await sources[s].fetchers[f](sources[s].rss);
+        if (items && items.length){
+          fillTicker("botTrack", items.slice(0,30), "");
+          return;
+        }
+      } catch(e){ /* next */ }
+    }
+  }
+  fillTicker("botTrack", null, "Canadian headlines unavailable — retrying…");
+}
+
+/* =============== WEATHER + PAGE GLOW : Open-Meteo, Pictou NS =============== */
+var LAT = 45.677, LON = -62.712;
+
+function wmoIcon(code, isDay){
+  if (code===0) return isDay ? "☀️" : "🌙";
+  if (code<=2)  return isDay ? "🌤️" : "☁️";
+  if (code===3) return "☁️";
+  if (code<=48) return "🌫️";
+  if (code<=57) return "🌦️";
+  if (code<=67) return "🌧️";
+  if (code<=77) return "🌨️";
+  if (code<=82) return "🌧️";
+  if (code<=86) return "🌨️";
+  return "⛈️";
+}
+function wmoText(code){
+  var m = {0:"Clear",1:"Mainly clear",2:"Partly cloudy",3:"Overcast",
+    45:"Fog",48:"Rime fog",51:"Light drizzle",53:"Drizzle",55:"Heavy drizzle",
+    61:"Light rain",63:"Rain",65:"Heavy rain",66:"Freezing rain",67:"Freezing rain",
+    71:"Light snow",73:"Snow",75:"Heavy snow",77:"Snow grains",
+    80:"Light showers",81:"Showers",82:"Heavy showers",
+    85:"Snow showers",86:"Snow showers",95:"Thunderstorm",
+    96:"T-storm, hail",99:"T-storm, hail"};
+  return m[code] || "—";
+}
+function glowColor(code, isDay){
+  if (code===0) return isDay ? "rgba(255,190,70,.30)"  : "rgba(90,110,200,.22)";
+  if (code<=2)  return isDay ? "rgba(255,205,110,.24)" : "rgba(90,110,200,.20)";
+  if (code===3) return "rgba(150,160,175,.20)";
+  if (code<=48) return "rgba(160,160,170,.20)";
+  if (code<=67) return "rgba(90,140,220,.22)";
+  if (code<=86) return "rgba(190,215,255,.22)";
+  return "rgba(180,120,255,.22)";
+}
+function cardinal(deg){
+  var d=["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return d[Math.round(deg/22.5)%16];
+}
+function fmtTime(iso){
+  var t = iso.split("T")[1].split(":");
+  var h = parseInt(t[0],10), m = t[1];
+  var ap = h>=12 ? "PM" : "AM"; h = h%12; if (h===0) h=12;
+  return h+":"+m+" "+ap;
+}
+async function loadWeather(){
+  var url = "https://api.open-meteo.com/v1/forecast?latitude="+LAT+"&longitude="+LON+
+    "&current=temperature_2m,apparent_temperature,relative_humidity_2m,is_day,weather_code,wind_speed_10m,wind_direction_10m"+
+    "&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max"+
+    "&timezone=America%2FHalifax&forecast_days=6";
+  try {
+    var r = await fetch(url);
+    var d = await r.json();
+    var c = d.current;
+    document.getElementById("wIcon").textContent = wmoIcon(c.weather_code, c.is_day);
+    document.getElementById("wTemp").textContent = Math.round(c.temperature_2m);
+    document.getElementById("wCond").textContent = wmoText(c.weather_code);
+    document.getElementById("wFeels").textContent = Math.round(c.apparent_temperature)+"°C";
+    document.getElementById("wWind").textContent =
+      Math.round(c.wind_speed_10m)+" km/h "+cardinal(c.wind_direction_10m);
+    document.getElementById("wHum").textContent = c.relative_humidity_2m+"%";
+    document.getElementById("wPrecip").textContent = (d.daily.precipitation_probability_max[0]??0)+"%";
+    document.getElementById("wRise").textContent = fmtTime(d.daily.sunrise[0]);
+    document.getElementById("wSet").textContent = fmtTime(d.daily.sunset[0]);
+
+    /* weather mood across the whole page, anchored top center */
+    document.documentElement.style.setProperty("--glow-color", glowColor(c.weather_code, c.is_day));
+
+    var days=["SUN","MON","TUE","WED","THU","FRI","SAT"];
+    var fc = document.getElementById("forecast");
+    fc.innerHTML = "";
+    for (var i=1;i<=5;i++){
+      var dt = new Date(d.daily.time[i]+"T12:00:00");
+      var cell = document.createElement("div");
+      cell.className = "day";
+      cell.innerHTML =
+        '<div class="dname">'+days[dt.getDay()]+"</div>"+
+        '<div class="dicon">'+wmoIcon(d.daily.weather_code[i],true)+"</div>"+
+        '<div class="dhi">'+Math.round(d.daily.temperature_2m_max[i])+"°</div>"+
+        '<div class="dlo">'+Math.round(d.daily.temperature_2m_min[i])+"°</div>";
+      fc.appendChild(cell);
+    }
+  } catch(e){
+    document.getElementById("wCond").textContent = "Weather unavailable";
+    document.getElementById("wCond").style.color = "#ff6b6b";
+  }
+}
+
+/* =============== KEEP SCREEN AWAKE =============== */
+var wakeLock = null;
+async function grabWakeLock(){
+  try {
+    if ("wakeLock" in navigator) wakeLock = await navigator.wakeLock.request("screen");
+  } catch(e){}
+}
+document.addEventListener("visibilitychange", function(){
+  if (document.visibilityState==="visible") grabWakeLock();
+});
+grabWakeLock();
+
+/* =============== KICK OFF + REFRESH =============== */
+loadESPN(); loadCanadian(); loadWeather();
+setInterval(loadESPN,     5*60*1000);
+setInterval(loadCanadian,10*60*1000);
+setInterval(loadWeather, 15*60*1000);
+</script>
+</body>
+</html>
